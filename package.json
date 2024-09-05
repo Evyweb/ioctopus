@@ -1,0 +1,36 @@
+{
+  "name": "@evyweb/node-script-template",
+  "version": "1.0.0",
+  "description": "A simple Typescript template with tsup, vitest and changesets",
+  "main": "dist/app.js",
+  "module": "dist/app.mjs",
+  "types": "dist/app.d.ts",
+  "files": [
+    "dist/"
+  ],
+  "scripts": {
+    "build": "tsup src/app.ts --format cjs,esm --dts",
+    "lint": "tsc --noEmit",
+    "start": "npm run build && node dist/app.js",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  },
+  "keywords": [],
+  "author": "Evyweb",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Evyweb/node-script-template.git"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.24",
+    "@vitest/coverage-v8": "^1.5.3",
+    "ts-node": "^10.9.2",
+    "tsup": "^8.0.2",
+    "typescript": "^5.3.3",
+    "vitest": "^1.3.1"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "4.9.5"
+  }
+}

@@ -9,9 +9,9 @@
     "dist/"
   ],
   "scripts": {
-    "build": "tsup src/app.ts --format cjs,esm --dts",
+    "build": "tsup src/container.ts --format cjs,esm --dts",
     "lint": "tsc --noEmit",
-    "start": "npm run build && node dist/app.js",
+    "start": "npm run build && node dist/Container.js",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage"
   },

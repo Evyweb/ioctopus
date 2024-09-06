@@ -1,7 +1,7 @@
 {
-  "name": "@evyweb/node-script-template",
-  "version": "1.0.0",
-  "description": "A simple Typescript template with tsup, vitest and changesets",
+  "name": "@evyweb/simple-ioc-container",
+  "version": "0.1.0",
+  "description": "A simple IoC container for JavaScript and TypeScript",
   "main": "dist/app.js",
   "module": "dist/app.mjs",
   "types": "dist/app.d.ts",
@@ -20,7 +20,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Evyweb/node-script-template.git"
+    "url": "https://github.com/Evyweb/simple-ioc-container"
   },
   "devDependencies": {
     "@types/node": "^20.11.24",

@@ -11,6 +11,7 @@ export interface Container {
 export function createContainer(): Container {
     const functionsOrValues = new Map<symbol, any>();
     const factories = new Map<symbol, CallableFunction>();
+    const instances = new Map<symbol, any>();
 
     function bind(key: symbol) {
         return {
@@ -23,7 +24,10 @@ export function createContainer(): Container {
     function get<T>(key: symbol): T {
         if (factories.has(key)) {
             const factory = factories.get(key)!;
-            return factory();
+            if (!instances.has(key)) {
+                instances.set(key, factory());
+            }
+            return instances.get(key);
         }
         return functionsOrValues.get(key);
     }

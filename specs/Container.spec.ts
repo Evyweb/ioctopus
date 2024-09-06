@@ -6,7 +6,7 @@ import {MyUseCase} from "./MyUseCase";
 import {MyUseCaseInterface} from "./MyUseCaseInterface";
 import {LoggerInterface} from "./LoggerInterface";
 import {DI} from "./DI";
-import {Container, createContainer} from "../src/container";
+import {Container, createContainer} from "../src";
 
 describe('Container', () => {
 
@@ -82,6 +82,28 @@ describe('Container', () => {
                 expect(fakeLogger.log).toHaveBeenCalledTimes(2);
                 expect(fakeLogger.log).toHaveBeenCalledWith('Executing with dep1: dependency1 and dep2: 42');
                 expect(fakeLogger.log).toHaveBeenCalledWith('hello world');
+            });
+        });
+
+        describe('When the dependency is retrieved twice', () => {
+            it('should return the same instance', () => {
+                // Arrange
+                container.bind(DI.DEP1).toValue('dependency1');
+                container.bind(DI.DEP2).toValue(42);
+
+                container.bind(DI.MY_SERVICE).toFactory(() => {
+                    return MyService({
+                        dep1: container.get<string>(DI.DEP1),
+                        dep2: container.get<number>(DI.DEP2)
+                    });
+                });
+                const myService1 = container.get<MyServiceInterface>(DI.MY_SERVICE);
+
+                // Act
+                const myService2 = container.get<MyServiceInterface>(DI.MY_SERVICE);
+
+                // Assert
+                expect(myService1).toBe(myService2);
             });
         });
     });

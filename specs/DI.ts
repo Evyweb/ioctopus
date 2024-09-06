@@ -3,6 +3,7 @@ export const DI = {
     DEP1: Symbol('dep1'),
     DEP2: Symbol('dep2'),
     MY_SERVICE: Symbol('MyService'),
+    MY_SERVICE_WITH_DEPENDENCY_ARRAY: Symbol('MyServiceWithDependencyArray'),
     MY_USE_CASE: Symbol('MyUseCase'),
     LOGGER: Symbol('LOGGER'),
     MY_SERVICE_CLASS: Symbol('MyServiceClass'),

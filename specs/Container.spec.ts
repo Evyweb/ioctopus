@@ -9,6 +9,7 @@ import {DI} from "./DI";
 import {Container, createContainer} from "../src";
 import {MyServiceClass} from "./MyServiceClass";
 import {MyServiceClassInterface} from "./MyServiceClassInterface";
+import {MyServiceWithDependencyArray} from "./MyServiceWithDependencyArray";
 
 describe('Container', () => {
 
@@ -30,23 +31,41 @@ describe('Container', () => {
             expect(sayHello()).toBe('hello world');
         });
 
-        it('should resolve all its dependencies using the factory', () => {
-            // Arrange
-            container.bind(DI.DEP1).toValue('dependency1');
-            container.bind(DI.DEP2).toValue(42);
+        describe('When the function with dependency array is used', () => {
+            it('should resolve all its dependencies', () => {
+                // Arrange
+                container.bind(DI.DEP1).toValue('dependency1');
+                container.bind(DI.DEP2).toValue(42);
 
-            container.bind(DI.MY_SERVICE).toFactory(() => {
-                return MyService({
-                    dep1: container.get<string>(DI.DEP1),
-                    dep2: container.get<number>(DI.DEP2)
-                });
+                container.bind(DI.MY_SERVICE_WITH_DEPENDENCY_ARRAY).toFunction(MyServiceWithDependencyArray, [DI.DEP1, DI.DEP2]);
+
+                // Act
+                const myService = container.get<MyServiceInterface>(DI.MY_SERVICE_WITH_DEPENDENCY_ARRAY);
+
+                // Assert
+                expect(myService.runTask()).toBe('Executing with dep1: dependency1 and dep2: 42');
             });
+        });
 
-            // Act
-            const myService = container.get<MyServiceInterface>(DI.MY_SERVICE);
+        describe('When a factory is used', () => {
+            it('should resolve all its dependencies', () => {
+                // Arrange
+                container.bind(DI.DEP1).toValue('dependency1');
+                container.bind(DI.DEP2).toValue(42);
 
-            // Assert
-            expect(myService.runTask()).toBe('Executing with dep1: dependency1 and dep2: 42');
+                container.bind(DI.MY_SERVICE).toFactory(() => {
+                    return MyService({
+                        dep1: container.get<string>(DI.DEP1),
+                        dep2: container.get<number>(DI.DEP2)
+                    });
+                });
+
+                // Act
+                const myService = container.get<MyServiceInterface>(DI.MY_SERVICE);
+
+                // Assert
+                expect(myService.runTask()).toBe('Executing with dep1: dependency1 and dep2: 42');
+            });
         });
 
         describe('When the dependency has dependencies', () => {

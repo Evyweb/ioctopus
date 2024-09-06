@@ -1,7 +1,7 @@
 export interface Container {
     bind(key: symbol): {
         toValue: (value: any) => void;
-        toFunction: (fn: CallableFunction) => void;
+        toFunction: (fn: CallableFunction, dependencies: symbol[]) => void;
         toFactory: (factory: CallableFunction) => void;
         toClass: (anyClass: new (...args: any[]) => any, dependencies: symbol[]) => void;
     };
@@ -10,19 +10,39 @@ export interface Container {
 }
 
 export function createContainer(): Container {
-    const functionsOrValues = new Map<symbol, any>();
+    const values = new Map<symbol, any>();
     const factories = new Map<symbol, CallableFunction>();
     const instances = new Map<symbol, any>();
 
     function bind(key: symbol) {
-        return {
-            toValue: (value: any) => functionsOrValues.set(key, value),
-            toFunction: (fn: CallableFunction) => functionsOrValues.set(key, fn),
-            toFactory: (factory: CallableFunction) => factories.set(key, factory),
-            toClass: (anyClass: new (...args: any[]) => any, dependencies: symbol[]) => {
-                const resolvedDependencies = dependencies.map((dependency) => get(dependency));
-                factories.set(key, () => new anyClass(...resolvedDependencies));
+
+        const toValue = (value: any) => values.set(key, value)
+
+        const toFunction = (fn: CallableFunction, dependencies: symbol[] = []) => {
+            if (dependencies.length > 0) {
+                factories.set(key, () => {
+                    const resolvedDependencies = dependencies.map((dependency) => get(dependency));
+                    return fn(...resolvedDependencies);
+                });
+            } else {
+                factories.set(key, () => fn);
             }
+        }
+
+        const toFactory = (factory: CallableFunction) => factories.set(key, factory)
+
+        const toClass = (anyClass: new (...args: any[]) => any, dependencies: symbol[]) => {
+            factories.set(key, () => {
+                const resolvedDependencies = dependencies.map((dependency) => get(dependency));
+                return new anyClass(...resolvedDependencies)
+            });
+        }
+
+        return {
+            toValue,
+            toFunction,
+            toFactory,
+            toClass
         };
     }
 
@@ -34,7 +54,7 @@ export function createContainer(): Container {
             }
             return instances.get(key);
         }
-        return functionsOrValues.get(key);
+        return values.get(key);
     }
 
     return {bind, get};

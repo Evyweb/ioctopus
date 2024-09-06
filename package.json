@@ -1,10 +1,10 @@
 {
   "name": "@evyweb/simple-ioc-container",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "description": "A simple IoC container for JavaScript and TypeScript",
-  "main": "dist/app.js",
-  "module": "dist/app.mjs",
-  "types": "dist/app.d.ts",
+  "main": "dist/container.js",
+  "module": "dist/container.mjs",
+  "types": "dist/container.d.ts",
   "files": [
     "dist/"
   ],

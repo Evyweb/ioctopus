@@ -3,6 +3,7 @@ export interface Container {
         toValue: (value: any) => void;
         toFunction: (fn: CallableFunction) => void;
         toFactory: (factory: CallableFunction) => void;
+        toClass: (anyClass: new (...args: any[]) => any, dependencies: symbol[]) => void;
     };
 
     get<T>(key: symbol): T;
@@ -17,7 +18,11 @@ export function createContainer(): Container {
         return {
             toValue: (value: any) => functionsOrValues.set(key, value),
             toFunction: (fn: CallableFunction) => functionsOrValues.set(key, fn),
-            toFactory: (factory: CallableFunction) => factories.set(key, factory)
+            toFactory: (factory: CallableFunction) => factories.set(key, factory),
+            toClass: (anyClass: new (...args: any[]) => any, dependencies: symbol[]) => {
+                const resolvedDependencies = dependencies.map((dependency) => get(dependency));
+                factories.set(key, () => new anyClass(...resolvedDependencies));
+            }
         };
     }
 

@@ -7,6 +7,8 @@ import {MyUseCaseInterface} from "./MyUseCaseInterface";
 import {LoggerInterface} from "./LoggerInterface";
 import {DI} from "./DI";
 import {Container, createContainer} from "../src";
+import {MyServiceClass} from "./MyServiceClass";
+import {MyServiceClassInterface} from "./MyServiceClassInterface";
 
 describe('Container', () => {
 
@@ -16,7 +18,7 @@ describe('Container', () => {
         container = createContainer();
     });
 
-    describe('When the function is registered using a symbol', () => {
+    describe('When a function is registered using a symbol', () => {
         it('should return the associated function', () => {
             // Arrange
             container.bind(DI.HELLO_WORLD).toFunction(sayHelloWorld);
@@ -88,10 +90,12 @@ describe('Container', () => {
         describe('When the dependency is retrieved twice', () => {
             it('should return the same instance', () => {
                 // Arrange
+                const factoryCalls = vi.fn();
                 container.bind(DI.DEP1).toValue('dependency1');
                 container.bind(DI.DEP2).toValue(42);
 
                 container.bind(DI.MY_SERVICE).toFactory(() => {
+                    factoryCalls();
                     return MyService({
                         dep1: container.get<string>(DI.DEP1),
                         dep2: container.get<number>(DI.DEP2)
@@ -101,6 +105,38 @@ describe('Container', () => {
 
                 // Act
                 const myService2 = container.get<MyServiceInterface>(DI.MY_SERVICE);
+
+                // Assert
+                expect(myService1).toBe(myService2);
+                expect(factoryCalls).toHaveBeenCalledTimes(1);
+            });
+        });
+    });
+
+    describe('When a class is registered using a symbol', () => {
+        it('should return the associated function', () => {
+            // Arrange
+            container.bind(DI.DEP1).toValue('dependency1');
+            container.bind(DI.DEP2).toValue(42);
+            container.bind(DI.MY_SERVICE_CLASS).toClass(MyServiceClass, [DI.DEP1, DI.DEP2]);
+
+            // Act
+            const myService = container.get<MyServiceClassInterface>(DI.MY_SERVICE_CLASS);
+
+            // Assert
+            expect(myService.runTask()).toBe('Executing with dep1: dependency1 and dep2: 42');
+        });
+
+        describe('When the dependency is retrieved twice', () => {
+            it('should return the same instance', () => {
+                // Arrange
+                container.bind(DI.DEP1).toValue('dependency1');
+                container.bind(DI.DEP2).toValue(42);
+                container.bind(DI.MY_SERVICE_CLASS).toClass(MyServiceClass, [DI.DEP1, DI.DEP2]);
+                const myService1 = container.get<MyServiceClassInterface>(DI.MY_SERVICE_CLASS);
+
+                // Act
+                const myService2 = container.get<MyServiceClassInterface>(DI.MY_SERVICE_CLASS);
 
                 // Assert
                 expect(myService1).toBe(myService2);

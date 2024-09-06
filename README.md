@@ -47,6 +47,10 @@ container.bind(DI.MY_USE_CASE).toFactory(() => {
         myService: container.get<MyService>(DI.MY_SERVICE)
     });
 });
+
+// You can register classes, the dependencies of the class will be resolved and injected in the constructor
+container.bind(DI.MY_SERVICE_CLASS).toClass(MyServiceClass, [DI.DEP1, DI.DEP2]);
+
 ```
 
 ### Resolve the dependencies

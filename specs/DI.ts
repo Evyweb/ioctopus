@@ -5,4 +5,5 @@ export const DI = {
     MY_SERVICE: Symbol('MyService'),
     MY_USE_CASE: Symbol('MyUseCase'),
     LOGGER: Symbol('LOGGER'),
+    MY_SERVICE_CLASS: Symbol('MyServiceClass'),
 }

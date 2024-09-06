@@ -2,16 +2,15 @@
   "name": "@evyweb/simple-ioc-container",
   "version": "0.0.0",
   "description": "A simple IoC container for JavaScript and TypeScript",
-  "main": "dist/container.js",
-  "module": "dist/container.mjs",
-  "types": "dist/container.d.ts",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
   "files": [
     "dist/"
   ],
   "scripts": {
-    "build": "tsup src/container.ts --format cjs,esm --dts",
+    "build": "tsup src/index.ts --format cjs,esm --dts",
     "lint": "tsc --noEmit",
-    "start": "npm run build && node dist/Container.js",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "changeset": "npx changeset",
@@ -25,6 +24,9 @@
     "type": "git",
     "url": "https://github.com/Evyweb/simple-ioc-container"
   },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "devDependencies": {
     "@changesets/cli": "^2.27.1",
     "@types/node": "^20.11.24",
@@ -33,8 +35,5 @@
     "tsup": "^8.0.2",
     "typescript": "^5.3.3",
     "vitest": "^1.3.1"
-  },
-  "optionalDependencies": {
-    "@rollup/rollup-linux-x64-gnu": "4.9.5"
   }
 }

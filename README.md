@@ -33,6 +33,9 @@ container.bind(DI.DEP2).toValue(42);
 // You can register functions without dependencies
 container.bind(DI.HELLO_WORLD).toFunction(sayHelloWorld);
 
+// You can register functions with dependencies
+container.bind(DI.MY_SERVICE_WITH_DEPENDENCY_ARRAY).toFunction(MyServiceWithDependencyArray, [DI.DEP1, DI.DEP2]);
+
 // You can register a factory so dep1 and dep2 will be injected
 container.bind(DI.MY_SERVICE).toFactory(() => {
     return MyService({

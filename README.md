@@ -1,7 +1,7 @@
 # Draft of a simple IOC container in Typescript
 
 ## Introduction
-This is just a draft for an attempt to create a simple IOC (Inversion of Control) container in Typescript. The idea is to create a simple container that can be used to register and resolve dependencies working with functions (no class) and without reflect metadata.
+This is just a draft for an attempt to create a simple IOC (Inversion of Control) container in Typescript. The idea is to create a simple container that can be used to register and resolve dependencies working with functions and without reflect metadata.
 
 ## How to use
 

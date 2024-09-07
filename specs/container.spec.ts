@@ -162,4 +162,12 @@ describe('Container', () => {
             });
         });
     });
+
+    describe('When no dependency has been registered for a given dependency', () => {
+        it('should throw an error', () => {
+            // Act & Assert
+            expect(() => container.get<string>(DI.NOT_REGISTERED_VALUE))
+                .toThrowError(`No binding found for key: ${DI.NOT_REGISTERED_VALUE.toString()}`);
+        });
+    });
 });

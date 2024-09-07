@@ -1,7 +1,7 @@
 export interface Container {
     bind(key: symbol): {
         toValue: (value: any) => void;
-        toFunction: (fn: CallableFunction, dependencies: symbol[]) => void;
+        toFunction: (fn: CallableFunction, dependencies?: symbol[]) => void;
         toFactory: (factory: CallableFunction) => void;
         toClass: (anyClass: new (...args: any[]) => any, dependencies: symbol[]) => void;
     };
@@ -15,7 +15,6 @@ export function createContainer(): Container {
     const instances = new Map<symbol, any>();
 
     function bind(key: symbol) {
-
         const toValue = (value: any) => values.set(key, value)
 
         const toFunction = (fn: CallableFunction, dependencies: symbol[] = []) => {
@@ -47,14 +46,21 @@ export function createContainer(): Container {
     }
 
     function get<T>(key: symbol): T {
-        if (factories.has(key)) {
-            const factory = factories.get(key)!;
-            if (!instances.has(key)) {
-                instances.set(key, factory());
-            }
+        if(instances.has(key)) {
             return instances.get(key);
         }
-        return values.get(key);
+
+        if (factories.has(key)) {
+            const factory = factories.get(key)!;
+            instances.set(key, factory());
+            return instances.get(key);
+        }
+
+        if(values.has(key)) {
+            return values.get(key);
+        }
+
+        throw new Error(`No binding found for key: ${key.toString()}`);
     }
 
     return {bind, get};

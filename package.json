@@ -22,10 +22,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Evyweb/ioctopus"
+    "url": "git+https://github.com/Evyweb/ioctopus.git"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+    "access": "public"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.1",

@@ -1,7 +1,10 @@
 # Draft of a simple IOC container in Typescript
 
 ## Introduction
-This is just a draft for an attempt to create a simple IOC (Inversion of Control) container in Typescript. The idea is to create a simple container that can be used to register and resolve dependencies working with functions and without reflect metadata.
+This is just a **draft** of an attempt to create a simple IOC (Inversion of Control) container in Typescript. 
+The idea behind is to create a simple container that can be used to register and resolve dependencies working with functions and without reflect metadata.
+It is using simple Typescript code, so it can be used in any project without any dependency.
+Remember that it is just a draft and it is not ready for production.
 
 ## How to use
 
@@ -14,8 +17,11 @@ export const DI = {
     DEP1: Symbol('dep1'),
     DEP2: Symbol('dep2'),
     MY_SERVICE: Symbol('MyService'),
+    MY_SERVICE_WITH_DEPENDENCY_ARRAY: Symbol('MyServiceWithDependencyArray'),
     MY_USE_CASE: Symbol('MyUseCase'),
     LOGGER: Symbol('LOGGER'),
+    MY_SERVICE_CLASS: Symbol('MyServiceClass'),
+    NOT_REGISTERED_VALUE: Symbol('NOT_REGISTERED_VALUE')
 };
 ```
 
@@ -36,7 +42,7 @@ container.bind(DI.HELLO_WORLD).toFunction(sayHelloWorld);
 // You can register functions with dependencies
 container.bind(DI.MY_SERVICE_WITH_DEPENDENCY_ARRAY).toFunction(MyServiceWithDependencyArray, [DI.DEP1, DI.DEP2]);
 
-// You can register a factory so dep1 and dep2 will be injected
+// For more complexe cases, you can register a factory so dep1 and dep2 will be injected
 container.bind(DI.MY_SERVICE).toFactory(() => {
     return MyService({
         dep1: container.get<string>(DI.DEP1),
@@ -69,5 +75,5 @@ myUseCase.execute();
 
 Code used in the examples can be found in the specs folder.
 
-This is just a draft and it is not ready for production.
+This is just a draft, and it is not ready for production.
 Can be improved in many ways.

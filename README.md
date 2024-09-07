@@ -1,4 +1,6 @@
-# Draft of a simple IOC container in Typescript
+# A simple IOC container in Typescript (DRAFT)
+
+![logo-ioctopus.png](assets/logo-ioctopus.png)
 
 ## Introduction
 This is just a **draft** of an attempt to create a simple IOC (Inversion of Control) container in Typescript. 

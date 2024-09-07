@@ -1,4 +1,10 @@
-# @evyweb/simple-ioc-container
+# @evyweb/ioctopus
+
+## 0.1.0
+
+### Minor Changes
+
+- higher order function have their own api now
 
 ## 0.0.1
 

@@ -1,7 +1,7 @@
 {
-  "name": "@evyweb/simple-ioc-container",
-  "version": "0.0.1",
-  "description": "A simple IoC container for JavaScript and TypeScript",
+  "name": "@evyweb/ioctopus",
+  "version": "0.1.0",
+  "description": "A simple IoC container for JavaScript and TypeScript for classes and functions.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -22,7 +22,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Evyweb/simple-ioc-container"
+    "url": "https://github.com/Evyweb/ioctopus"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"

@@ -15,7 +15,7 @@ export function createContainer(): Container {
     const instances = new Map<symbol, any>();
 
     function bind(key: symbol) {
-        const toValue = (value: any) => values.set(key, value)
+        const toValue = (value: any) => values.set(key, value);
 
         const toFunction = (fn: CallableFunction, dependencies: symbol[] = []) => {
             if (dependencies.length > 0) {
@@ -26,16 +26,16 @@ export function createContainer(): Container {
             } else {
                 factories.set(key, () => fn);
             }
-        }
+        };
 
-        const toFactory = (factory: CallableFunction) => factories.set(key, factory)
+        const toFactory = (factory: CallableFunction) => factories.set(key, factory);
 
         const toClass = (anyClass: new (...args: any[]) => any, dependencies: symbol[]) => {
             factories.set(key, () => {
                 const resolvedDependencies = dependencies.map((dependency) => get(dependency));
                 return new anyClass(...resolvedDependencies)
             });
-        }
+        };
 
         return {
             toValue,
@@ -46,6 +46,10 @@ export function createContainer(): Container {
     }
 
     function get<T>(key: symbol): T {
+        if(values.has(key)) {
+            return values.get(key);
+        }
+
         if(instances.has(key)) {
             return instances.get(key);
         }
@@ -54,10 +58,6 @@ export function createContainer(): Container {
             const factory = factories.get(key)!;
             instances.set(key, factory());
             return instances.get(key);
-        }
-
-        if(values.has(key)) {
-            return values.get(key);
         }
 
         throw new Error(`No binding found for key: ${key.toString()}`);

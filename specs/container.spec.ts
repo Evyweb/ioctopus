@@ -10,6 +10,8 @@ import {Container, createContainer} from "../src";
 import {MyServiceClass} from "./MyServiceClass";
 import {MyServiceClassInterface} from "./MyServiceClassInterface";
 import {MyServiceWithDependencies} from "./MyServiceWithDependencies";
+import {ServiceWithoutDependency} from "./ServiceWithoutDependency";
+import {ServiceWithoutDependencyInterface} from "./ServiceWithoutDependencyInterface";
 
 describe('Container', () => {
 
@@ -45,6 +47,20 @@ describe('Container', () => {
 
                 // Assert
                 expect(myService.runTask()).toBe('Executing with dep1: dependency1 and dep2: 42');
+            });
+        });
+
+        describe('When the function with dependency empty array is used', () => {
+            it('should consider the function as an higher order function', () => {
+                // Arrange
+                container.bind(DI.DEP1).toValue('dependency1');
+                container.bind(DI.SERVICE_WITHOUT_DEPENDENCY).toFunction(ServiceWithoutDependency, []);
+
+                // Act
+                const myService = container.get<ServiceWithoutDependencyInterface>(DI.SERVICE_WITHOUT_DEPENDENCY);
+
+                // Assert
+                expect(myService.run()).toBe('OtherService');
             });
         });
 

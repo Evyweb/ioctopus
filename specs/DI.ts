@@ -7,5 +7,6 @@ export const DI = {
     MY_USE_CASE: Symbol('MyUseCase'),
     LOGGER: Symbol('LOGGER'),
     MY_SERVICE_CLASS: Symbol('MyServiceClass'),
-    NOT_REGISTERED_VALUE: Symbol('NOT_REGISTERED_VALUE')
+    NOT_REGISTERED_VALUE: Symbol('NOT_REGISTERED_VALUE'),
+    SERVICE_WITHOUT_DEPENDENCY: Symbol('OtherService')
 }

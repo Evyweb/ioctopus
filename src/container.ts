@@ -19,8 +19,8 @@ export function createContainer(): Container {
     function bind(key: symbol) {
         const toValue = (value: unknown) => values.set(key, value);
 
-        const toFunction = (fn: CallableFunction, dependencies: symbol[] = []) => {
-            if (dependencies.length > 0) {
+        const toFunction = (fn: CallableFunction, dependencies?: symbol[]) => {
+            if (dependencies && Array.isArray(dependencies)) {
                 factories.set(key, () => fn(...resolveDependencies(dependencies)));
             } else {
                 factories.set(key, () => fn);
@@ -42,11 +42,11 @@ export function createContainer(): Container {
     }
 
     function get<T>(key: symbol): T {
-        if(values.has(key)) {
+        if (values.has(key)) {
             return values.get(key) as T;
         }
 
-        if(instances.has(key)) {
+        if (instances.has(key)) {
             return instances.get(key) as T;
         }
 

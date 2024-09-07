@@ -37,7 +37,8 @@ describe('Container', () => {
                 container.bind(DI.DEP1).toValue('dependency1');
                 container.bind(DI.DEP2).toValue(42);
 
-                container.bind(DI.MY_SERVICE_WITH_DEPENDENCY_ARRAY).toFunction(MyServiceWithDependencyArray, [DI.DEP1, DI.DEP2]);
+                container.bind(DI.MY_SERVICE_WITH_DEPENDENCY_ARRAY)
+                    .toFunction(MyServiceWithDependencyArray, [DI.DEP1, DI.DEP2]);
 
                 // Act
                 const myService = container.get<MyServiceInterface>(DI.MY_SERVICE_WITH_DEPENDENCY_ARRAY);

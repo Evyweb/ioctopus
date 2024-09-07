@@ -17,7 +17,7 @@ export const DI = {
     DEP1: Symbol('dep1'),
     DEP2: Symbol('dep2'),
     MY_SERVICE: Symbol('MyService'),
-    MY_SERVICE_WITH_DEPENDENCY_ARRAY: Symbol('MyServiceWithDependencyArray'),
+    MY_SERVICE_WITH_DEPENDENCIES: Symbol('MyServiceWithDependencies'),
     MY_USE_CASE: Symbol('MyUseCase'),
     LOGGER: Symbol('LOGGER'),
     MY_SERVICE_CLASS: Symbol('MyServiceClass'),
@@ -40,7 +40,7 @@ container.bind(DI.DEP2).toValue(42);
 container.bind(DI.HELLO_WORLD).toFunction(sayHelloWorld);
 
 // You can register functions with dependencies
-container.bind(DI.MY_SERVICE_WITH_DEPENDENCY_ARRAY).toFunction(MyServiceWithDependencyArray, [DI.DEP1, DI.DEP2]);
+container.bind(DI.MY_SERVICE_WITH_DEPENDENCIES).toFunction(MyServiceWithDependencies, [DI.DEP1, DI.DEP2]);
 
 // For more complexe cases, you can register a factory so dep1 and dep2 will be injected
 container.bind(DI.MY_SERVICE).toFactory(() => {

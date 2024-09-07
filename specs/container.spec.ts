@@ -9,7 +9,7 @@ import {DI} from "./DI";
 import {Container, createContainer} from "../src";
 import {MyServiceClass} from "./MyServiceClass";
 import {MyServiceClassInterface} from "./MyServiceClassInterface";
-import {MyServiceWithDependencyArray} from "./MyServiceWithDependencyArray";
+import {MyServiceWithDependencies} from "./MyServiceWithDependencies";
 
 describe('Container', () => {
 
@@ -37,11 +37,11 @@ describe('Container', () => {
                 container.bind(DI.DEP1).toValue('dependency1');
                 container.bind(DI.DEP2).toValue(42);
 
-                container.bind(DI.MY_SERVICE_WITH_DEPENDENCY_ARRAY)
-                    .toFunction(MyServiceWithDependencyArray, [DI.DEP1, DI.DEP2]);
+                container.bind(DI.MY_SERVICE_WITH_DEPENDENCIES)
+                    .toFunction(MyServiceWithDependencies, [DI.DEP1, DI.DEP2]);
 
                 // Act
-                const myService = container.get<MyServiceInterface>(DI.MY_SERVICE_WITH_DEPENDENCY_ARRAY);
+                const myService = container.get<MyServiceInterface>(DI.MY_SERVICE_WITH_DEPENDENCIES);
 
                 // Assert
                 expect(myService.runTask()).toBe('Executing with dep1: dependency1 and dep2: 42');

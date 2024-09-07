@@ -6,7 +6,11 @@
 This is just a **draft** of an attempt to create a simple IOC (Inversion of Control) container in Typescript. 
 The idea behind is to create a simple container that can be used to register and resolve dependencies working with functions and without reflect metadata.
 It is using simple Typescript code, so it can be used in any project without any dependency.
+Should work in NextJS middleware and edge runtime.
 Remember that it is just a draft and it is not ready for production.
+
+## Installation
+```npm i @evyweb/ioctopus```
 
 ## How to use
 

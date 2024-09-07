@@ -37,14 +37,10 @@ container.bind(DI.DEP1).toValue('dependency1');
 container.bind(DI.DEP2).toValue(42);
 
 // You can register functions without dependencies (e.g. a const sayHelloWorld = () => 'Hello World')
-// This kind of function has no dependecies, so you need to register it without the dependency array
 container.bind(DI.HELLO_WORLD).toFunction(sayHelloWorld);
 
-// You can register functions with dependencies
-container.bind(DI.MY_SERVICE_WITH_DEPENDENCIES).toFunction(MyServiceWithDependencies, [DI.DEP1, DI.DEP2]);
-
-// Note: If your function has no dependencies but is a higher order function, you have to register it as a function with an empty array of dependencies:
-container.bind(DI.SERVICE_WITHOUT_DEPENDENCY).toFunction(ServiceWithoutDependency, []);
+// You can register functions with dependencies (any higher order function)
+container.bind(DI.MY_SERVICE_WITH_DEPENDENCIES).toHigherOrderFunction(MyServiceWithDependencies, [DI.DEP1, DI.DEP2]);
 
 // For more complexe cases, you can register a factory so dep1 and dep2 will be injected
 container.bind(DI.MY_SERVICE).toFactory(() => {

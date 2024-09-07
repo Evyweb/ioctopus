@@ -40,7 +40,7 @@ describe('Container', () => {
                 container.bind(DI.DEP2).toValue(42);
 
                 container.bind(DI.MY_SERVICE_WITH_DEPENDENCIES)
-                    .toFunction(MyServiceWithDependencies, [DI.DEP1, DI.DEP2]);
+                    .toHigherOrderFunction(MyServiceWithDependencies, [DI.DEP1, DI.DEP2]);
 
                 // Act
                 const myService = container.get<MyServiceInterface>(DI.MY_SERVICE_WITH_DEPENDENCIES);
@@ -54,7 +54,8 @@ describe('Container', () => {
             it('should consider the function as an higher order function', () => {
                 // Arrange
                 container.bind(DI.DEP1).toValue('dependency1');
-                container.bind(DI.SERVICE_WITHOUT_DEPENDENCY).toFunction(ServiceWithoutDependency, []);
+                container.bind(DI.SERVICE_WITHOUT_DEPENDENCY)
+                    .toHigherOrderFunction(ServiceWithoutDependency);
 
                 // Act
                 const myService = container.get<ServiceWithoutDependencyInterface>(DI.SERVICE_WITHOUT_DEPENDENCY);

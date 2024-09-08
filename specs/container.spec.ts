@@ -22,7 +22,7 @@ describe('Container', () => {
         container = createContainer();
     });
 
-    describe('When a function is registered using a symbol', () => {
+    describe('When a simple function is registered', () => {
         it('should return the associated function', () => {
             // Arrange
             container.bind(DI.SIMPLE_FUNCTION).toFunction(sayHelloWorld);
@@ -34,8 +34,8 @@ describe('Container', () => {
             expect(sayHello()).toBe('hello world');
         });
 
-        describe('When the function with dependency array is used', () => {
-            it('should resolve all its dependencies', () => {
+        describe('When the function is a higher order function with dependencies', () => {
+            it('should return the function with all its dependencies resolved', () => {
                 // Arrange
                 container.bind(DI.DEP1).toValue('dependency1');
                 container.bind(DI.DEP2).toValue(42);
@@ -51,8 +51,8 @@ describe('Container', () => {
             });
         });
 
-        describe('When the function with dependency empty array is used', () => {
-            it('should consider the function as an higher order function', () => {
+        describe('When the function is a higher order function without dependencies', () => {
+            it('should just return the function', () => {
                 // Arrange
                 container.bind(DI.DEP1).toValue('dependency1');
                 container.bind(DI.HIGHER_ORDER_FUNCTION_WITHOUT_DEPENDENCIES)
@@ -88,7 +88,7 @@ describe('Container', () => {
         });
 
         describe('When the dependency has dependencies', () => {
-            it('should resolve all its dependencies using the factory', () => {
+            it('should return the dependency with all its dependencies resolved', () => {
                 // Arrange
                 container.bind(DI.DEP1).toValue('dependency1');
                 container.bind(DI.DEP2).toValue(42);
@@ -151,7 +151,7 @@ describe('Container', () => {
         });
     });
 
-    describe('When a class is registered using a symbol', () => {
+    describe('When a class is registered', () => {
         describe('When the class has dependencies', () => {
             it('should return the instance with the resolved dependencies', () => {
                 // Arrange
@@ -168,7 +168,7 @@ describe('Container', () => {
         });
 
         describe('When the class has no dependency', () => {
-            it('should return the instance', () => {
+            it('should just return the instance', () => {
                 // Arrange
                 container.bind(DI.DEP1).toValue('dependency1');
                 container.bind(DI.DEP2).toValue(42);
@@ -182,8 +182,8 @@ describe('Container', () => {
             });
         });
 
-        describe('When the dependency is retrieved twice', () => {
-            it('should return the same instance', () => {
+        describe('When the instance is retrieved twice', () => {
+            it('should always return the same instance', () => {
                 // Arrange
                 container.bind(DI.DEP1).toValue('dependency1');
                 container.bind(DI.DEP2).toValue(42);
@@ -199,7 +199,7 @@ describe('Container', () => {
         });
     });
 
-    describe('When no dependency has been registered for a given dependency', () => {
+    describe('When no dependency has been registered', () => {
         it('should throw an error', () => {
             // Act & Assert
             expect(() => container.get<string>(DI.NOT_REGISTERED_VALUE))

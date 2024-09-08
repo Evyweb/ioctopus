@@ -1,14 +1,4 @@
-export interface Container {
-    bind(key: symbol): {
-        toValue: (value: unknown) => void;
-        toFunction: (fn: CallableFunction) => void;
-        toHigherOrderFunction: (fn: CallableFunction, dependencies?: symbol[]) => void;
-        toFactory: (factory: CallableFunction) => void;
-        toClass: <C>(constructor: new (...args: any[]) => C, dependencies?: symbol[]) => void;
-    };
-
-    get<T>(key: symbol): T;
-}
+import {Container} from "./types";
 
 export function createContainer(): Container {
     const values = new Map<symbol, unknown>();
@@ -20,9 +10,7 @@ export function createContainer(): Container {
     function bind(key: symbol) {
         const toValue = (value: unknown) => values.set(key, value);
 
-        const toFunction = (fn: CallableFunction) => {
-            factories.set(key, () => fn);
-        };
+        const toFunction = (fn: CallableFunction) => factories.set(key, () => fn);
 
         const toHigherOrderFunction = (fn: CallableFunction, dependencies: symbol[] = []) => {
             factories.set(key, () => fn(...resolveDependencies(dependencies)));

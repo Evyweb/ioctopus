@@ -14,11 +14,11 @@ Remember that it is just a draft and it is not ready for production.
 
 ## How to use
 
-### List the dependencies
+### List your injection tokens
 Create a symbol for each dependency you want to register. It will be used to identify the dependency.
 
 ```typescript
-export const DI = {
+export const DI: InjectionTokens = {
     DEP1: Symbol('DEP1'),
     DEP2: Symbol('DEP2'),
     LOGGER: Symbol('LOGGER'),
@@ -30,7 +30,7 @@ export const DI = {
     CLASS_WITHOUT_DEPENDENCIES: Symbol('CLASS_WITHOUT_DEPENDENCIES'),
     HIGHER_ORDER_FUNCTION_WITH_DEPENDENCIES: Symbol('HIGHER_ORDER_FUNCTION_WITH_DEPENDENCIES'),
     HIGHER_ORDER_FUNCTION_WITHOUT_DEPENDENCIES: Symbol('HIGHER_ORDER_FUNCTION_WITHOUT_DEPENDENCIES')
-};
+} ;
 ```
 
 ### Register the dependencies
@@ -44,13 +44,34 @@ const container: Container = createContainer();
 container.bind(DI.DEP1).toValue('dependency1');
 container.bind(DI.DEP2).toValue(42);
 
-// You can register functions without dependencies (e.g. a const sayHelloWorld = () => 'Hello World')
+// You can register functions without dependencies
+const sayHelloWorld = () => {
+    console.log('Hello World');
+};
+
 container.bind(DI.SIMPLE_FUNCTION).toFunction(sayHelloWorld);
 
-// You can register functions with dependencies (any higher order function)
+// You can register functions with dependencies by using higher order functions
+const MyServiceWithDependencies = (dep1: string, dep2: number) => {
+    return {
+        runTask: () => {
+            // Do something with dep1 and dep2
+        }
+    };
+};
+
 container.bind(DI.HIGHER_ORDER_FUNCTION_WITH_DEPENDENCIES).toHigherOrderFunction(MyServiceWithDependencies, [DI.DEP1, DI.DEP2]);
 
-// For more complexe cases, you can register a factory so dep1 and dep2 will be injected
+// For more complexe cases, you can register a factory so dep1 and dep2 will be injected.
+// For example here: dependencies are grouped in an object so they cannot be injected directly using the previous syntax
+const MyService = (dependencies: { dep1: string, dep2: number }) => {
+    return {
+        runTask: () => {
+            // Do something with dependencies.dep1 and dependencies.dep2
+        }
+    };
+};
+
 container.bind(DI.MY_SERVICE).toFactory(() => {
     return MyService({
         dep1: container.get<string>(DI.DEP1),
@@ -67,6 +88,9 @@ container.bind(DI.MY_USE_CASE).toFactory(() => {
 
 // You can register classes, the dependencies of the class will be resolved and injected in the constructor
 container.bind(DI.CLASS_WITH_DEPENDENCIES).toClass(MyServiceClass, [DI.DEP1, DI.DEP2]);
+
+// You can register classes without dependencies
+container.bind(DI.CLASS_WITHOUT_DEPENDENCIES).toClass(MyServiceClassWithoutDependencies);
 
 ```
 

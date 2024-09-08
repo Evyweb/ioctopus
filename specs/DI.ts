@@ -1,4 +1,6 @@
-export const DI = {
+import {InjectionTokens} from "../src";
+
+export const DI: InjectionTokens = {
     DEP1: Symbol('DEP1'),
     DEP2: Symbol('DEP2'),
     LOGGER: Symbol('LOGGER'),
@@ -10,4 +12,4 @@ export const DI = {
     CLASS_WITHOUT_DEPENDENCIES: Symbol('CLASS_WITHOUT_DEPENDENCIES'),
     HIGHER_ORDER_FUNCTION_WITH_DEPENDENCIES: Symbol('HIGHER_ORDER_FUNCTION_WITH_DEPENDENCIES'),
     HIGHER_ORDER_FUNCTION_WITHOUT_DEPENDENCIES: Symbol('HIGHER_ORDER_FUNCTION_WITHOUT_DEPENDENCIES')
-} as const;
+} ;

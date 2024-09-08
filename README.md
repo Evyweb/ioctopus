@@ -73,7 +73,7 @@ const MyService = (dependencies: { dep1: string, dep2: number }) => {
 container.bind(DI.HIGHER_ORDER_FUNCTION_WITH_DEPENDENCIES)
     .toHigherOrderFunction(MyServiceWithDependencies, { dep1: DI.DEP1, dep2: DI.DEP2 });
 
-// 4. For more complexe cases, you can register a factory so myService will be injected
+// 4. For more complex cases, you can register a factory
 container.bind(DI.MY_USE_CASE).toFactory(() => {
     // Do something before creating the instance
     return MyUseCase({

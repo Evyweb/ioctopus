@@ -25,7 +25,6 @@ export const DI: InjectionTokens = {
     MY_SERVICE: Symbol('MY_SERVICE'),
     MY_USE_CASE: Symbol('MY_USE_CASE'),
     SIMPLE_FUNCTION: Symbol('SIMPLE_FUNCTION'),
-    NOT_REGISTERED_VALUE: Symbol('NOT_REGISTERED_VALUE'),
     CLASS_WITH_DEPENDENCIES: Symbol('CLASS_WITH_DEPENDENCIES'),
     CLASS_WITHOUT_DEPENDENCIES: Symbol('CLASS_WITHOUT_DEPENDENCIES'),
     HIGHER_ORDER_FUNCTION_WITH_DEPENDENCIES: Symbol('HIGHER_ORDER_FUNCTION_WITH_DEPENDENCIES'),
@@ -40,18 +39,15 @@ import { DI } from './di';
 
 const container: Container = createContainer();
 
-// You can register primitives
+// 1. You can register primitives
 container.bind(DI.DEP1).toValue('dependency1');
 container.bind(DI.DEP2).toValue(42);
 
-// You can register functions without dependencies
-const sayHelloWorld = () => {
-    console.log('Hello World');
-};
-
+// 2. You can register functions without dependencies
+const sayHelloWorld = () => console.log('Hello World');
 container.bind(DI.SIMPLE_FUNCTION).toFunction(sayHelloWorld);
 
-// You can register functions with dependencies by using higher order functions
+// 3. You can register functions with dependencies by using higher order functions
 const MyServiceWithDependencies = (dep1: string, dep2: number) => {
     return {
         runTask: () => {
@@ -60,10 +56,11 @@ const MyServiceWithDependencies = (dep1: string, dep2: number) => {
     };
 };
 
-container.bind(DI.HIGHER_ORDER_FUNCTION_WITH_DEPENDENCIES).toHigherOrderFunction(MyServiceWithDependencies, [DI.DEP1, DI.DEP2]);
+// The dependencies will be listed in an array in the second parameter
+container.bind(DI.HIGHER_ORDER_FUNCTION_WITH_DEPENDENCIES)
+    .toHigherOrderFunction(MyServiceWithDependencies, [DI.DEP1, DI.DEP2]);
 
-// For more complexe cases, you can register a factory so dep1 and dep2 will be injected.
-// For example here: dependencies are grouped in an object so they cannot be injected directly using the previous syntax
+// But if you prefer, you can also use a dependency object
 const MyService = (dependencies: { dep1: string, dep2: number }) => {
     return {
         runTask: () => {
@@ -72,24 +69,22 @@ const MyService = (dependencies: { dep1: string, dep2: number }) => {
     };
 };
 
-container.bind(DI.MY_SERVICE).toFactory(() => {
-    return MyService({
-        dep1: container.get<string>(DI.DEP1),
-        dep2: container.get<number>(DI.DEP2)
-    });
-});
+// The dependencies will be listed in an object in the second parameter
+container.bind(DI.HIGHER_ORDER_FUNCTION_WITH_DEPENDENCIES)
+    .toHigherOrderFunction(MyServiceWithDependencies, { dep1: DI.DEP1, dep2: DI.DEP2 });
 
-// You can register a factory so myService will be injected
+// 4. For more complexe cases, you can register a factory so myService will be injected
 container.bind(DI.MY_USE_CASE).toFactory(() => {
+    // Do something before creating the instance
     return MyUseCase({
         myService: container.get<MyService>(DI.MY_SERVICE)
     });
 });
 
-// You can register classes, the dependencies of the class will be resolved and injected in the constructor
+// 5. You can register classes, the dependencies of the class will be resolved and injected in the constructor
 container.bind(DI.CLASS_WITH_DEPENDENCIES).toClass(MyServiceClass, [DI.DEP1, DI.DEP2]);
 
-// You can register classes without dependencies
+// 6. You can register classes without dependencies
 container.bind(DI.CLASS_WITHOUT_DEPENDENCIES).toClass(MyServiceClassWithoutDependencies);
 
 ```

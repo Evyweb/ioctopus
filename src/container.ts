@@ -1,25 +1,44 @@
-import {Container} from "./types";
+import {Container, DependencyArray, DependencyObject} from "./types";
 
 export function createContainer(): Container {
     const values = new Map<symbol, unknown>();
     const factories = new Map<symbol, CallableFunction>();
     const instances = new Map<symbol, unknown>();
 
-    const resolveDependencies = (dependencies: symbol[]) => dependencies.map((dependency) => get(dependency));
+    const resolveDependenciesArray = (dependencies: DependencyArray) => dependencies.map((dependency) => get(dependency));
+
+    const resolveDependenciesObject = (dependencies: DependencyObject) => {
+        const entries = Object.entries(dependencies);
+        return Object.fromEntries(entries.map(([key, dependency]) => [key, get(dependency)]));
+    };
+
+    const isDependencyArray = (dependencies: DependencyArray | DependencyObject): dependencies is DependencyArray => Array.isArray(dependencies);
+
+    const isDependencyObject = (dependencies: DependencyArray | DependencyObject): dependencies is DependencyObject => typeof dependencies === 'object' && !Array.isArray(dependencies);
 
     function bind(key: symbol) {
         const toValue = (value: unknown) => values.set(key, value);
 
         const toFunction = (fn: CallableFunction) => factories.set(key, () => fn);
 
-        const toHigherOrderFunction = (fn: CallableFunction, dependencies: symbol[] = []) => {
-            factories.set(key, () => fn(...resolveDependencies(dependencies)));
+        const toHigherOrderFunction = (fn: CallableFunction, dependencies?: DependencyArray | DependencyObject) => {
+            if(dependencies) {
+                if (isDependencyArray(dependencies)) {
+                    factories.set(key, () => fn(...resolveDependenciesArray(dependencies)));
+                } else if (isDependencyObject(dependencies)) {
+                    factories.set(key, () => fn({...resolveDependenciesObject(dependencies)}));
+                } else {
+                    throw new Error('Invalid dependencies type');
+                }
+            } else {
+                factories.set(key, () => fn());
+            }
         };
 
         const toFactory = (factory: CallableFunction) => factories.set(key, factory);
 
-        const toClass = (AnyClass: new (...args: unknown[]) => unknown, dependencies: symbol[] = []) => {
-            factories.set(key, () => new AnyClass(...resolveDependencies(dependencies)));
+        const toClass = (AnyClass: new (...args: unknown[]) => unknown, dependencies: DependencyArray = []) => {
+            factories.set(key, () => new AnyClass(...resolveDependenciesArray(dependencies)));
         };
 
         return {

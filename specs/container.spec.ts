@@ -35,28 +35,59 @@ describe('Container', () => {
         });
 
         describe('When the function is a higher order function with dependencies', () => {
-            it('should return the function with all its dependencies resolved', () => {
-                // Arrange
+            beforeEach(() => {
                 container.bind(DI.DEP1).toValue('dependency1');
                 container.bind(DI.DEP2).toValue(42);
+            });
 
-                container.bind(DI.HIGHER_ORDER_FUNCTION_WITH_DEPENDENCIES)
-                    .toHigherOrderFunction(FunctionWithDependencies, [DI.DEP1, DI.DEP2]);
+            describe('When the dependencies are defined in an array', () => {
+                it('should return the function with all its dependencies resolved', () => {
+                    // Arrange
+                    container.bind(DI.HIGHER_ORDER_FUNCTION_WITH_DEPENDENCIES)
+                        .toHigherOrderFunction(FunctionWithDependencies, [DI.DEP1, DI.DEP2]);
 
-                // Act
-                const myService = container.get<MyServiceInterface>(DI.HIGHER_ORDER_FUNCTION_WITH_DEPENDENCIES);
+                    // Act
+                    const myService = container.get<MyServiceInterface>(DI.HIGHER_ORDER_FUNCTION_WITH_DEPENDENCIES);
 
-                // Assert
-                expect(myService.runTask()).toBe('Executing with dep1: dependency1 and dep2: 42');
+                    // Assert
+                    expect(myService.runTask()).toBe('Executing with dep1: dependency1 and dep2: 42');
+                });
+            });
+
+            describe('When the dependencies are defined in an object', () => {
+                it('should return the function with all its dependencies resolved', () => {
+                    // Arrange
+                    container.bind(DI.MY_SERVICE)
+                        .toHigherOrderFunction(MyService, {dep1: DI.DEP1, dep2: DI.DEP2});
+
+                    // Act
+                    const myService = container.get<MyServiceInterface>(DI.MY_SERVICE);
+
+                    // Assert
+                    expect(myService.runTask()).toBe('Executing with dep1: dependency1 and dep2: 42');
+                });
+            });
+
+            describe('When the dependencies are defined in an other format', () => {
+                it('should throw an error', () => {
+                    // Act & Assert
+                    expect(() => container.bind(DI.HIGHER_ORDER_FUNCTION_WITH_DEPENDENCIES)
+                        .toHigherOrderFunction(FunctionWithDependencies, 'invalid' as any))
+                        .toThrowError('Invalid dependencies type');
+                });
             });
         });
 
-        describe('When the function is a higher order function without dependencies', () => {
+        describe.each([
+            { dependencies: undefined },
+            { dependencies: [] },
+            { dependencies: {} },
+        ])('When the function is a higher order function without dependencies', ({dependencies}) => {
             it('should just return the function', () => {
                 // Arrange
                 container.bind(DI.DEP1).toValue('dependency1');
                 container.bind(DI.HIGHER_ORDER_FUNCTION_WITHOUT_DEPENDENCIES)
-                    .toHigherOrderFunction(HigherOrderFunctionWithoutDependencies);
+                    .toHigherOrderFunction(HigherOrderFunctionWithoutDependencies, dependencies);
 
                 // Act
                 const myService = container.get<ServiceWithoutDependencyInterface>(DI.HIGHER_ORDER_FUNCTION_WITHOUT_DEPENDENCIES);
@@ -85,68 +116,69 @@ describe('Container', () => {
                 // Assert
                 expect(myService.runTask()).toBe('Executing with dep1: dependency1 and dep2: 42');
             });
-        });
 
-        describe('When the dependency has dependencies', () => {
-            it('should return the dependency with all its dependencies resolved', () => {
-                // Arrange
-                container.bind(DI.DEP1).toValue('dependency1');
-                container.bind(DI.DEP2).toValue(42);
-                container.bind(DI.SIMPLE_FUNCTION).toFunction(sayHelloWorld);
+            describe('When the dependency has dependencies', () => {
+                it('should return the dependency with all its dependencies resolved', () => {
+                    // Arrange
+                    container.bind(DI.DEP1).toValue('dependency1');
+                    container.bind(DI.DEP2).toValue(42);
+                    container.bind(DI.SIMPLE_FUNCTION).toFunction(sayHelloWorld);
 
-                container.bind(DI.MY_SERVICE).toFactory(() => {
-                    return MyService({
-                        dep1: container.get<string>(DI.DEP1),
-                        dep2: container.get<number>(DI.DEP2)
+                    container.bind(DI.MY_SERVICE).toFactory(() => {
+                        return MyService({
+                            dep1: container.get<string>(DI.DEP1),
+                            dep2: container.get<number>(DI.DEP2)
+                        });
                     });
-                });
 
-                const fakeLogger: LoggerInterface = {
-                    log: vi.fn()
-                }
-                container.bind(DI.LOGGER).toValue(fakeLogger);
-
-                container.bind(DI.MY_USE_CASE).toFactory(() => {
-                    return MyUseCase({
-                        myService: container.get<MyServiceInterface>(DI.MY_SERVICE),
-                        logger: container.get<LoggerInterface>(DI.LOGGER),
-                        sayHello: container.get<SayHelloType>(DI.SIMPLE_FUNCTION)
+                    container.bind(DI.LOGGER).toValue({
+                        log: vi.fn()
                     });
+
+                    container.bind(DI.MY_USE_CASE).toFactory(() => {
+                        return MyUseCase({
+                            myService: container.get<MyServiceInterface>(DI.MY_SERVICE),
+                            logger: container.get<LoggerInterface>(DI.LOGGER),
+                            sayHello: container.get<SayHelloType>(DI.SIMPLE_FUNCTION)
+                        });
+                    });
+
+                    // Act
+                    const myUseCase = container.get<MyUseCaseInterface>(DI.MY_USE_CASE);
+
+                    // Assert
+                    expect(myUseCase.execute()).toBe('Executing with dep1: dependency1 and dep2: 42');
+
+                    const fakeLogger = container.get<LoggerInterface>(DI.LOGGER);
+                    expect(fakeLogger.log).toHaveBeenCalledTimes(2);
+                    expect(fakeLogger.log).toHaveBeenCalledWith('Executing with dep1: dependency1 and dep2: 42');
+                    expect(fakeLogger.log).toHaveBeenCalledWith('hello world');
                 });
-
-                // Act
-                const myUseCase = container.get<MyUseCaseInterface>(DI.MY_USE_CASE);
-
-                // Assert
-                expect(myUseCase.execute()).toBe('Executing with dep1: dependency1 and dep2: 42');
-                expect(fakeLogger.log).toHaveBeenCalledTimes(2);
-                expect(fakeLogger.log).toHaveBeenCalledWith('Executing with dep1: dependency1 and dep2: 42');
-                expect(fakeLogger.log).toHaveBeenCalledWith('hello world');
             });
-        });
 
-        describe('When the dependency is retrieved twice', () => {
-            it('should return the same instance', () => {
-                // Arrange
-                const factoryCalls = vi.fn();
-                container.bind(DI.DEP1).toValue('dependency1');
-                container.bind(DI.DEP2).toValue(42);
+            describe('When the dependency is retrieved twice', () => {
+                it('should return the same instance', () => {
+                    // Arrange
+                    const factoryCalls = vi.fn();
+                    container.bind(DI.DEP1).toValue('dependency1');
+                    container.bind(DI.DEP2).toValue(42);
 
-                container.bind(DI.MY_SERVICE).toFactory(() => {
-                    factoryCalls();
-                    return MyService({
-                        dep1: container.get<string>(DI.DEP1),
-                        dep2: container.get<number>(DI.DEP2)
+                    container.bind(DI.MY_SERVICE).toFactory(() => {
+                        factoryCalls();
+                        return MyService({
+                            dep1: container.get<string>(DI.DEP1),
+                            dep2: container.get<number>(DI.DEP2)
+                        });
                     });
+                    const myService1 = container.get<MyServiceInterface>(DI.MY_SERVICE);
+
+                    // Act
+                    const myService2 = container.get<MyServiceInterface>(DI.MY_SERVICE);
+
+                    // Assert
+                    expect(myService1).toBe(myService2);
+                    expect(factoryCalls).toHaveBeenCalledTimes(1);
                 });
-                const myService1 = container.get<MyServiceInterface>(DI.MY_SERVICE);
-
-                // Act
-                const myService2 = container.get<MyServiceInterface>(DI.MY_SERVICE);
-
-                // Assert
-                expect(myService1).toBe(myService2);
-                expect(factoryCalls).toHaveBeenCalledTimes(1);
             });
         });
     });

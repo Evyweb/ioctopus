@@ -38,17 +38,24 @@ export const DI: InjectionTokens = {
 import { DI } from './di';
 
 const container: Container = createContainer();
+```
 
-// 1. You can register primitives
+- You can register primitives
+```typescript
 container.bind(DI.DEP1).toValue('dependency1');
 container.bind(DI.DEP2).toValue(42);
+```
 
-// 2. You can register functions without dependencies
+- You can register functions without dependencies
+```typescript
 const sayHelloWorld = () => console.log('Hello World');
-container.bind(DI.SIMPLE_FUNCTION).toFunction(sayHelloWorld);
 
-// 3. You can register functions with dependencies by using higher order functions
-const MyServiceWithDependencies = (dep1: string, dep2: number) => {
+container.bind(DI.SIMPLE_FUNCTION).toFunction(sayHelloWorld);
+```
+
+- You can register functions with dependencies by using higher order functions
+```typescript
+const MyServiceWithDependencies = (dep1: string, dep2: number): MyServiceWithDependenciesInterface => {
     return {
         runTask: () => {
             // Do something with dep1 and dep2
@@ -59,9 +66,17 @@ const MyServiceWithDependencies = (dep1: string, dep2: number) => {
 // The dependencies will be listed in an array in the second parameter
 container.bind(DI.HIGHER_ORDER_FUNCTION_WITH_DEPENDENCIES)
     .toHigherOrderFunction(MyServiceWithDependencies, [DI.DEP1, DI.DEP2]);
+```
 
-// But if you prefer, you can also use a dependency object
-const MyService = (dependencies: { dep1: string, dep2: number }) => {
+- But if you prefer, you can also use a dependency object
+
+```typescript
+interface Dependencies {
+    dep1: string,
+    dep2: number
+}
+
+const MyService = (dependencies: Dependencies): MyServiceInterface => {
     return {
         runTask: () => {
             // Do something with dependencies.dep1 and dependencies.dep2
@@ -71,22 +86,48 @@ const MyService = (dependencies: { dep1: string, dep2: number }) => {
 
 // The dependencies will be listed in an object in the second parameter
 container.bind(DI.HIGHER_ORDER_FUNCTION_WITH_DEPENDENCIES)
-    .toHigherOrderFunction(MyServiceWithDependencies, { dep1: DI.DEP1, dep2: DI.DEP2 });
+    .toHigherOrderFunction(MyService, {dep1: DI.DEP1, dep2: DI.DEP2});
+```
 
-// 4. For more complex cases, you can register a factory
+- For more complex cases, you can register factories.
+    
+```typescript
 container.bind(DI.MY_USE_CASE).toFactory(() => {
     // Do something before creating the instance
+     
+    // Then return the instance
     return MyUseCase({
         myService: container.get<MyService>(DI.MY_SERVICE)
     });
 });
+```
 
-// 5. You can register classes, the dependencies of the class will be resolved and injected in the constructor
+- You can register classes, the dependencies of the class will be resolved and injected in the constructor
+
+```typescript
+class MyServiceClass implements MyServiceClassInterface {
+    constructor(
+        private readonly dep1: string,
+        private readonly dep2: number,
+    ) {}
+
+    runTask(): string {
+        return `Executing with dep1: ${this.dep1} and dep2: ${this.dep2}`;
+    }
+}
+
 container.bind(DI.CLASS_WITH_DEPENDENCIES).toClass(MyServiceClass, [DI.DEP1, DI.DEP2]);
+```
 
-// 6. You can register classes without dependencies
+- You can register classes without dependencies
+```typescript
+class MyServiceClassWithoutDependencies implements MyServiceClassInterface {
+    runTask(): string {
+        return `Executing without dependencies`;
+    }
+}
+
 container.bind(DI.CLASS_WITHOUT_DEPENDENCIES).toClass(MyServiceClassWithoutDependencies);
-
 ```
 
 ### Resolve the dependencies

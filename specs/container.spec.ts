@@ -9,9 +9,10 @@ import {DI} from "./DI";
 import {Container, createContainer} from "../src";
 import {MyServiceClass} from "./MyServiceClass";
 import {MyServiceClassInterface} from "./MyServiceClassInterface";
-import {MyServiceWithDependencies} from "./MyServiceWithDependencies";
-import {ServiceWithoutDependency} from "./ServiceWithoutDependency";
+import {FunctionWithDependencies} from "./FunctionWithDependencies";
+import {HigherOrderFunctionWithoutDependencies} from "./HigherOrderFunctionWithoutDependencies";
 import {ServiceWithoutDependencyInterface} from "./ServiceWithoutDependencyInterface";
+import {MyServiceClassWithoutDependencies} from "./MyServiceClassWithoutDependencies";
 
 describe('Container', () => {
 
@@ -24,10 +25,10 @@ describe('Container', () => {
     describe('When a function is registered using a symbol', () => {
         it('should return the associated function', () => {
             // Arrange
-            container.bind(DI.HELLO_WORLD).toFunction(sayHelloWorld);
+            container.bind(DI.SIMPLE_FUNCTION).toFunction(sayHelloWorld);
 
             // Act
-            const sayHello = container.get<SayHelloType>(DI.HELLO_WORLD);
+            const sayHello = container.get<SayHelloType>(DI.SIMPLE_FUNCTION);
 
             // Assert
             expect(sayHello()).toBe('hello world');
@@ -39,11 +40,11 @@ describe('Container', () => {
                 container.bind(DI.DEP1).toValue('dependency1');
                 container.bind(DI.DEP2).toValue(42);
 
-                container.bind(DI.MY_SERVICE_WITH_DEPENDENCIES)
-                    .toHigherOrderFunction(MyServiceWithDependencies, [DI.DEP1, DI.DEP2]);
+                container.bind(DI.HIGHER_ORDER_FUNCTION_WITH_DEPENDENCIES)
+                    .toHigherOrderFunction(FunctionWithDependencies, [DI.DEP1, DI.DEP2]);
 
                 // Act
-                const myService = container.get<MyServiceInterface>(DI.MY_SERVICE_WITH_DEPENDENCIES);
+                const myService = container.get<MyServiceInterface>(DI.HIGHER_ORDER_FUNCTION_WITH_DEPENDENCIES);
 
                 // Assert
                 expect(myService.runTask()).toBe('Executing with dep1: dependency1 and dep2: 42');
@@ -54,11 +55,11 @@ describe('Container', () => {
             it('should consider the function as an higher order function', () => {
                 // Arrange
                 container.bind(DI.DEP1).toValue('dependency1');
-                container.bind(DI.SERVICE_WITHOUT_DEPENDENCY)
-                    .toHigherOrderFunction(ServiceWithoutDependency);
+                container.bind(DI.HIGHER_ORDER_FUNCTION_WITHOUT_DEPENDENCIES)
+                    .toHigherOrderFunction(HigherOrderFunctionWithoutDependencies);
 
                 // Act
-                const myService = container.get<ServiceWithoutDependencyInterface>(DI.SERVICE_WITHOUT_DEPENDENCY);
+                const myService = container.get<ServiceWithoutDependencyInterface>(DI.HIGHER_ORDER_FUNCTION_WITHOUT_DEPENDENCIES);
 
                 // Assert
                 expect(myService.run()).toBe('OtherService');
@@ -91,7 +92,7 @@ describe('Container', () => {
                 // Arrange
                 container.bind(DI.DEP1).toValue('dependency1');
                 container.bind(DI.DEP2).toValue(42);
-                container.bind(DI.HELLO_WORLD).toFunction(sayHelloWorld);
+                container.bind(DI.SIMPLE_FUNCTION).toFunction(sayHelloWorld);
 
                 container.bind(DI.MY_SERVICE).toFactory(() => {
                     return MyService({
@@ -109,7 +110,7 @@ describe('Container', () => {
                     return MyUseCase({
                         myService: container.get<MyServiceInterface>(DI.MY_SERVICE),
                         logger: container.get<LoggerInterface>(DI.LOGGER),
-                        sayHello: container.get<SayHelloType>(DI.HELLO_WORLD)
+                        sayHello: container.get<SayHelloType>(DI.SIMPLE_FUNCTION)
                     });
                 });
 
@@ -151,17 +152,34 @@ describe('Container', () => {
     });
 
     describe('When a class is registered using a symbol', () => {
-        it('should return the associated function', () => {
-            // Arrange
-            container.bind(DI.DEP1).toValue('dependency1');
-            container.bind(DI.DEP2).toValue(42);
-            container.bind(DI.MY_SERVICE_CLASS).toClass(MyServiceClass, [DI.DEP1, DI.DEP2]);
+        describe('When the class has dependencies', () => {
+            it('should return the instance with the resolved dependencies', () => {
+                // Arrange
+                container.bind(DI.DEP1).toValue('dependency1');
+                container.bind(DI.DEP2).toValue(42);
+                container.bind(DI.CLASS_WITH_DEPENDENCIES).toClass(MyServiceClass, [DI.DEP1, DI.DEP2]);
 
-            // Act
-            const myService = container.get<MyServiceClassInterface>(DI.MY_SERVICE_CLASS);
+                // Act
+                const myService = container.get<MyServiceClassInterface>(DI.CLASS_WITH_DEPENDENCIES);
 
-            // Assert
-            expect(myService.runTask()).toBe('Executing with dep1: dependency1 and dep2: 42');
+                // Assert
+                expect(myService.runTask()).toBe('Executing with dep1: dependency1 and dep2: 42');
+            });
+        });
+
+        describe('When the class has no dependency', () => {
+            it('should return the instance', () => {
+                // Arrange
+                container.bind(DI.DEP1).toValue('dependency1');
+                container.bind(DI.DEP2).toValue(42);
+                container.bind(DI.CLASS_WITHOUT_DEPENDENCIES).toClass(MyServiceClassWithoutDependencies);
+
+                // Act
+                const myService = container.get<MyServiceClassInterface>(DI.CLASS_WITHOUT_DEPENDENCIES);
+
+                // Assert
+                expect(myService.runTask()).toBe('Executing without dependencies');
+            });
         });
 
         describe('When the dependency is retrieved twice', () => {
@@ -169,11 +187,11 @@ describe('Container', () => {
                 // Arrange
                 container.bind(DI.DEP1).toValue('dependency1');
                 container.bind(DI.DEP2).toValue(42);
-                container.bind(DI.MY_SERVICE_CLASS).toClass(MyServiceClass, [DI.DEP1, DI.DEP2]);
-                const myService1 = container.get<MyServiceClassInterface>(DI.MY_SERVICE_CLASS);
+                container.bind(DI.CLASS_WITH_DEPENDENCIES).toClass(MyServiceClass, [DI.DEP1, DI.DEP2]);
+                const myService1 = container.get<MyServiceClassInterface>(DI.CLASS_WITH_DEPENDENCIES);
 
                 // Act
-                const myService2 = container.get<MyServiceClassInterface>(DI.MY_SERVICE_CLASS);
+                const myService2 = container.get<MyServiceClassInterface>(DI.CLASS_WITH_DEPENDENCIES);
 
                 // Assert
                 expect(myService1).toBe(myService2);

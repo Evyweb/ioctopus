@@ -1,6 +1,6 @@
 import {ServiceWithoutDependencyInterface} from "./ServiceWithoutDependencyInterface";
 
-export const ServiceWithoutDependency = (): ServiceWithoutDependencyInterface => ({
+export const HigherOrderFunctionWithoutDependencies = (): ServiceWithoutDependencyInterface => ({
     run() {
         return 'OtherService';
     }

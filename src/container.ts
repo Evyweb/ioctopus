@@ -4,7 +4,7 @@ export interface Container {
         toFunction: (fn: CallableFunction) => void;
         toHigherOrderFunction: (fn: CallableFunction, dependencies?: symbol[]) => void;
         toFactory: (factory: CallableFunction) => void;
-        toClass: <C>(constructor: new (...args: any[]) => C, dependencies: symbol[]) => void;
+        toClass: <C>(constructor: new (...args: any[]) => C, dependencies?: symbol[]) => void;
     };
 
     get<T>(key: symbol): T;
@@ -30,8 +30,8 @@ export function createContainer(): Container {
 
         const toFactory = (factory: CallableFunction) => factories.set(key, factory);
 
-        const toClass = (AnyClass: new (...args: unknown[]) => unknown, dependencies: symbol[]) => {
-            factories.set(key, () => new AnyClass(...(resolveDependencies(dependencies))));
+        const toClass = (AnyClass: new (...args: unknown[]) => unknown, dependencies: symbol[] = []) => {
+            factories.set(key, () => new AnyClass(...resolveDependencies(dependencies)));
         };
 
         return {

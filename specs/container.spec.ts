@@ -13,6 +13,7 @@ import {FunctionWithDependencies} from "./FunctionWithDependencies";
 import {HigherOrderFunctionWithoutDependencies} from "./HigherOrderFunctionWithoutDependencies";
 import {ServiceWithoutDependencyInterface} from "./ServiceWithoutDependencyInterface";
 import {MyServiceClassWithoutDependencies} from "./MyServiceClassWithoutDependencies";
+import {mock, MockProxy} from "vitest-mock-extended";
 
 describe('Container', () => {
 
@@ -131,9 +132,7 @@ describe('Container', () => {
                         });
                     });
 
-                    container.bind(DI.LOGGER).toValue({
-                        log: vi.fn()
-                    });
+                    container.bind(DI.LOGGER).toValue(mock<LoggerInterface>());
 
                     container.bind(DI.MY_USE_CASE).toFactory(() => {
                         return MyUseCase({
@@ -149,7 +148,7 @@ describe('Container', () => {
                     // Assert
                     expect(myUseCase.execute()).toBe('Executing with dep1: dependency1 and dep2: 42');
 
-                    const fakeLogger = container.get<LoggerInterface>(DI.LOGGER);
+                    const fakeLogger = container.get<MockProxy<LoggerInterface>>(DI.LOGGER);
                     expect(fakeLogger.log).toHaveBeenCalledTimes(2);
                     expect(fakeLogger.log).toHaveBeenCalledWith('Executing with dep1: dependency1 and dep2: 42');
                     expect(fakeLogger.log).toHaveBeenCalledWith('hello world');

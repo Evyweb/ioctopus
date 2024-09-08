@@ -1,5 +1,11 @@
 # @evyweb/ioctopus
 
+## 0.2.0
+
+### Minor Changes
+
+- function dependencies can now be defined using a dependency object
+
 ## 0.1.0
 
 ### Minor Changes

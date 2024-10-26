@@ -1,13 +1,12 @@
-# A simple IOC container in Typescript (DRAFT)
+# A simple IOC container for Typescript
 
 ![logo-ioctopus.png](assets/logo-ioctopus.png)
 
 ## Introduction
-This is just a **draft** of an attempt to create a simple IOC (Inversion of Control) container in Typescript. 
-The idea behind is to create a simple container that can be used to register and resolve dependencies working with functions and without reflect metadata.
+An IOC (Inversion of Control) container for Typescript. 
+The idea behind is to create a simple container that can be used to register and resolve dependencies working with classes & functions but without reflect metadata.
 It is using simple Typescript code, so it can be used in any project without any dependency.
-Should work in NextJS middleware and edge runtime.
-Remember that it is just a draft and it is not ready for production.
+Works in NextJS middleware and edge runtime.
 
 ## Installation
 ```npm i @evyweb/ioctopus```
@@ -31,14 +30,15 @@ export const DI: InjectionTokens = {
     HIGHER_ORDER_FUNCTION_WITHOUT_DEPENDENCIES: Symbol('HIGHER_ORDER_FUNCTION_WITHOUT_DEPENDENCIES')
 } ;
 ```
-
-### Register the dependencies
+Then create your container.
 
 ```typescript
 import { DI } from './di';
 
 const container: Container = createContainer();
 ```
+
+### Register the dependencies
 
 - You can register primitives
 ```typescript
@@ -142,6 +142,3 @@ myUseCase.execute();
 ```
 
 Code used in the examples can be found in the specs folder.
-
-This is just a draft, and it is not ready for production.
-Can be improved in many ways.

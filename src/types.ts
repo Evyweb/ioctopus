@@ -6,11 +6,19 @@ export type DependencyArray = symbol[];
 
 export interface Container {
     bind(key: symbol): {
-        toValue: (value: unknown) => void;
-        toFunction: (fn: CallableFunction) => void;
-        toHigherOrderFunction: (fn: CallableFunction, dependencies?: DependencyArray | DependencyObject) => void;
-        toFactory: (factory: CallableFunction) => void;
-        toClass: <C>(constructor: new (...args: any[]) => C, dependencies?: DependencyArray) => void;
+        toValue: (value: unknown, scope?: 'singleton' | 'transient' | 'scoped') => void;
+        toFunction: (fn: CallableFunction, scope?: 'singleton' | 'transient' | 'scoped') => void;
+        toHigherOrderFunction: (
+            fn: CallableFunction,
+            dependencies?: DependencyArray | DependencyObject,
+            scope?: 'singleton' | 'transient' | 'scoped'
+        ) => void;
+        toFactory: (factory: CallableFunction, scope?: 'singleton' | 'transient' | 'scoped') => void;
+        toClass: <C>(
+            constructor: new (...args: any[]) => C,
+            dependencies?: DependencyArray,
+            scope?: 'singleton' | 'transient' | 'scoped'
+        ) => void;
     };
 
     load(moduleKey: symbol, module: Module): void;
@@ -18,18 +26,28 @@ export interface Container {
     get<T>(key: symbol): T;
 
     unload(key: symbol): void;
+
+    runInScope<T>(callback: () => T): T;
 }
 
 export interface Module {
     bind(key: symbol): {
-        toValue: (value: unknown) => void;
-        toFunction: (fn: CallableFunction) => void;
-        toHigherOrderFunction: (fn: CallableFunction, dependencies?: DependencyArray | DependencyObject) => void;
-        toFactory: (factory: CallableFunction) => void;
-        toClass: <C>(constructor: new (...args: any[]) => C, dependencies?: DependencyArray) => void;
+        toValue: (value: unknown, scope?: 'singleton' | 'transient' | 'scoped') => void;
+        toFunction: (fn: CallableFunction, scope?: 'singleton' | 'transient' | 'scoped') => void;
+        toHigherOrderFunction: (
+            fn: CallableFunction,
+            dependencies?: DependencyArray | DependencyObject,
+            scope?: 'singleton' | 'transient' | 'scoped'
+        ) => void;
+        toFactory: (factory: CallableFunction, scope?: 'singleton' | 'transient' | 'scoped') => void;
+        toClass: <C>(
+            constructor: new (...args: any[]) => C,
+            dependencies?: DependencyArray,
+            scope?: 'singleton' | 'transient' | 'scoped'
+        ) => void;
     };
 
-    bindings: Map<symbol, CallableFunction>;
+    bindings: Map<symbol, Binding>;
 }
 
 export interface InjectionTokens {
@@ -37,3 +55,8 @@ export interface InjectionTokens {
 }
 
 export type ResolveFunction = (dep: symbol) => unknown;
+
+export interface Binding {
+    factory: (resolve: (key: symbol) => unknown) => unknown;
+    scope: 'singleton' | 'transient' | 'scoped';
+}

@@ -1,53 +1,84 @@
-import {Container, Module} from "./types";
+import {Binding, Container, Module} from "./types";
 import {createModule} from "./module";
-
-const DEFAULT_MODULE = Symbol('DEFAULT');
 
 export function createContainer(): Container {
     const modules = new Map<symbol, Module>();
-    const instances = new Map<symbol, unknown>();
+    const singletonInstances = new Map<symbol, unknown>();
+    const scopedInstances = new Map<symbol, Map<symbol, unknown>>();
+    let currentScopeId: symbol | undefined;
 
     const defaultModule = createModule();
-    modules.set(DEFAULT_MODULE, defaultModule);
+    modules.set(Symbol('DEFAULT'), defaultModule);
 
     const bind = (key: symbol) => defaultModule.bind(key);
 
     const load = (moduleKey: symbol, module: Module) => modules.set(moduleKey, module);
 
     const unload = (moduleKey: symbol) => {
-        instances.clear();
+        singletonInstances.clear();
         modules.delete(moduleKey);
     };
 
-    const findLastBinding = (key: symbol): CallableFunction | null => {
+    const findLastBinding = (key: symbol): Binding | null => {
         const modulesArray = Array.from(modules.values());
-        const moduleLength = modulesArray.length - 1;
-
-        for (let i = moduleLength; i >= 0; i--) {
+        for (let i = modulesArray.length - 1; i >= 0; i--) {
             const module = modulesArray[i];
             const binding = module.bindings.get(key);
             if (binding) {
-                return binding;
+                return binding as Binding;
             }
         }
-
         return null;
     };
 
     const get = <T>(key: symbol): T => {
-        if (instances.has(key)) {
-            return instances.get(key) as T;
-        }
-
         const binding = findLastBinding(key);
-        if (!binding) {
-            throw new Error(`No binding found for key: ${key.toString()}`);
+        if (!binding) throw new Error(`No binding found for key: ${key.toString()}`);
+
+        const { factory, scope } = binding;
+
+        if (scope === 'singleton') {
+            if (!singletonInstances.has(key)) {
+                singletonInstances.set(key, factory(resolveDependency));
+            }
+            return singletonInstances.get(key) as T;
         }
 
-        const instance = binding((depKey: symbol) => get(depKey));
-        instances.set(key, instance);
-        return instance as T;
+        if (scope === 'transient') {
+            return factory(resolveDependency) as T;
+        }
+
+        if (scope === 'scoped') {
+            if (!currentScopeId) throw new Error(`Cannot resolve scoped binding outside of a scope: ${key.toString()}`);
+
+            if (!scopedInstances.has(currentScopeId)) {
+                scopedInstances.set(currentScopeId, new Map<symbol, unknown>());
+            }
+            const scopeMap = scopedInstances.get(currentScopeId)!;
+            if (!scopeMap.has(key)) {
+                scopeMap.set(key, factory(resolveDependency));
+            }
+
+            return scopeMap.get(key) as T;
+        }
+
+        throw new Error(`Unknown scope: ${scope}`);
     };
 
-    return {bind, load, get, unload};
+    const resolveDependency = (depKey: symbol): unknown => {
+        return get(depKey);
+    };
+
+    const runInScope = <T>(callback: () => T): T => {
+        const previousScopeId = currentScopeId;
+        currentScopeId = Symbol('scope');
+        try {
+            return callback();
+        } finally {
+            scopedInstances.delete(currentScopeId);
+            currentScopeId = previousScopeId;
+        }
+    };
+
+    return { bind, load, get, unload, runInScope };
 }

@@ -143,9 +143,13 @@ myUseCase.execute();
 
 Code used in the examples can be found in the specs folder.
 
-### Loading modules
+### Modules
 
-You can also use modules to organize your dependencies. Modules can then be loaded in your container. 
+You can also use modules to organize your dependencies.
+
+#### Loading modules
+
+Modules can then be loaded in your container. 
 By default, when you create a container, it is using a default module under the hood.
 
 ```typescript
@@ -168,7 +172,7 @@ const myService = container.get<MyServiceInterface>(DI.MY_SERVICE);
 The dependencies do not need to be registered in the same module as the one that is using them.
 Note that the module name used as a key is a symbol.
 
-### Modules override
+#### Modules override
 
 You can also override dependencies of a module. The dependencies of the module will be overridden by the dependencies of the last loaded module.
 
@@ -193,7 +197,7 @@ container.load(Symbol('module3'), module3);
 const myService = container.get<MyServiceInterface>(DI.MY_SERVICE);
 ```
 
-### Unload modules
+#### Unload modules
 
 You can also unload a module from the container. The dependencies of the module will be removed from the container.
 Already cached instances will be removed to keep consistency and avoid potential errors.
@@ -210,3 +214,55 @@ container.unload(Symbol('module1'));
 // Will throw an error as the dependency is not registered anymore
 const myService = container.get<string>(DI.DEP1); 
 ```
+### Using scopes
+
+#### Singleton scope (default)
+
+In singleton scope, the container returns the same instance every time a dependency is resolved.
+
+```typescript
+container.bind(DI.MY_SERVICE).toClass(MyServiceClass, [DI.DEP1, DI.DEP2]);
+// or
+container.bind(DI.MY_SERVICE).toClass(MyServiceClass, [DI.DEP1, DI.DEP2], 'singleton');
+
+const instance1 = container.get<MyServiceClassInterface>(DI.MY_SERVICE);
+const instance2 = container.get<MyServiceClassInterface>(DI.MY_SERVICE);
+
+console.log(instance1 === instance2); // true
+```
+#### Transient scope
+
+In transient scope, the container returns a new instance every time the dependency is resolved.
+
+```typescript
+container.bind(DI.MY_SERVICE).toClass(MyServiceClass, [DI.DEP1, DI.DEP2], 'transient');
+
+const instance1 = container.get<MyServiceClassInterface>(DI.MY_SERVICE);
+const instance2 = container.get<MyServiceClassInterface>(DI.MY_SERVICE);
+
+console.log(instance1 === instance2); // false
+```
+
+#### Scoped Scope
+In scoped scope, the container returns the same instance within a scope. Different scopes will have different instances.
+
+To use the scoped scope, you need to create a scope using runInScope.
+
+```typescript
+container.bind(DI.MY_SERVICE).toClass(MyServiceClass, [DI.DEP1, DI.DEP2], 'scoped');
+
+container.runInScope(() => {
+    const instance1 = container.get<MyServiceClassInterface>(DI.MY_SERVICE);
+    const instance2 = container.get<MyServiceClassInterface>(DI.MY_SERVICE);
+
+    console.log(instance1 === instance2); // true
+});
+
+container.runInScope(() => {
+    const instance3 = container.get<MyServiceClassInterface>(DI.MY_SERVICE);
+
+    console.log(instance3 === instance1); // false
+});
+```
+
+Note: If you try to resolve a scoped dependency outside a scope, an error will be thrown.

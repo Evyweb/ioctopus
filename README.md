@@ -142,3 +142,71 @@ myUseCase.execute();
 ```
 
 Code used in the examples can be found in the specs folder.
+
+### Loading modules
+
+You can also use modules to organize your dependencies. Modules can then be loaded in your container. 
+By default, when you create a container, it is using a default module under the hood.
+
+```typescript
+const module1 = createModule();
+module1.bind(DI.DEP1).toValue('dependency1');
+
+const module2 = createModule();
+module2.bind(DI.DEP2).toValue(42);
+
+const module3 = createModule();
+module3.bind(DI.MY_SERVICE).toHigherOrderFunction(MyService, {dep1: DI.DEP1, dep2: DI.DEP2});
+
+const container = createContainer();
+container.load(Symbol('module1'), module1);
+container.load(Symbol('module2'), module2);
+container.load(Symbol('module3'), module3);
+
+const myService = container.get<MyServiceInterface>(DI.MY_SERVICE);
+```
+The dependencies do not need to be registered in the same module as the one that is using them.
+Note that the module name used as a key is a symbol.
+
+### Modules override
+
+You can also override dependencies of a module. The dependencies of the module will be overridden by the dependencies of the last loaded module.
+
+```typescript
+const module1 = createModule();
+module1.bind(DI.DEP1).toValue('OLD dependency1');
+module1.bind(DI.MY_SERVICE).toFunction(sayHelloWorld);
+
+const module2 = createModule();
+module2.bind(DI.DEP1).toValue('NEW dependency1');
+
+const module3 = createModule();
+module3.bind(DI.MY_SERVICE).toHigherOrderFunction(MyService, {dep1: DI.DEP1, dep2: DI.DEP2});
+
+const container = createContainer();
+container.bind(DI.DEP2).toValue(42); // Default module
+container.load(Symbol('module1'), module1);
+container.load(Symbol('module2'), module2);
+container.load(Symbol('module3'), module3);
+
+// The dependency DI.MY_SERVICE will be resolved with the higher order function and dep1 will be 'NEW dependency1'
+const myService = container.get<MyServiceInterface>(DI.MY_SERVICE);
+```
+
+### Unload modules
+
+You can also unload a module from the container. The dependencies of the module will be removed from the container.
+Already cached instances will be removed to keep consistency and avoid potential errors.
+
+```typescript
+const module1 = createModule();
+module1.bind(DI.DEP1).toValue('dependency1');
+
+const container = createContainer();
+container.load(Symbol('module1'), module1);
+
+container.unload(Symbol('module1'));
+
+// Will throw an error as the dependency is not registered anymore
+const myService = container.get<string>(DI.DEP1); 
+```

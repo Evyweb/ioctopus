@@ -1,72 +1,53 @@
-import {Container, DependencyArray, DependencyObject} from "./types";
+import {Container, Module} from "./types";
+import {createModule} from "./module";
+
+const DEFAULT_MODULE = Symbol('DEFAULT');
 
 export function createContainer(): Container {
-    const values = new Map<symbol, unknown>();
-    const factories = new Map<symbol, CallableFunction>();
+    const modules = new Map<symbol, Module>();
     const instances = new Map<symbol, unknown>();
 
-    const resolveDependenciesArray = (dependencies: DependencyArray) => dependencies.map((dependency) => get(dependency));
+    const defaultModule = createModule();
+    modules.set(DEFAULT_MODULE, defaultModule);
 
-    const resolveDependenciesObject = (dependencies: DependencyObject) => {
-        const entries = Object.entries(dependencies);
-        return Object.fromEntries(entries.map(([key, dependency]) => [key, get(dependency)]));
+    const bind = (key: symbol) => defaultModule.bind(key);
+
+    const load = (moduleKey: symbol, module: Module) => modules.set(moduleKey, module);
+
+    const unload = (moduleKey: symbol) => {
+        instances.clear();
+        modules.delete(moduleKey);
     };
 
-    const isDependencyArray = (dependencies: DependencyArray | DependencyObject): dependencies is DependencyArray => Array.isArray(dependencies);
+    const findLastBinding = (key: symbol): CallableFunction | null => {
+        const modulesArray = Array.from(modules.values());
+        const moduleLength = modulesArray.length - 1;
 
-    const isDependencyObject = (dependencies: DependencyArray | DependencyObject): dependencies is DependencyObject => typeof dependencies === 'object' && !Array.isArray(dependencies);
-
-    function bind(key: symbol) {
-        const toValue = (value: unknown) => values.set(key, value);
-
-        const toFunction = (fn: CallableFunction) => factories.set(key, () => fn);
-
-        const toHigherOrderFunction = (fn: CallableFunction, dependencies?: DependencyArray | DependencyObject) => {
-            if(dependencies) {
-                if (isDependencyArray(dependencies)) {
-                    factories.set(key, () => fn(...resolveDependenciesArray(dependencies)));
-                } else if (isDependencyObject(dependencies)) {
-                    factories.set(key, () => fn({...resolveDependenciesObject(dependencies)}));
-                } else {
-                    throw new Error('Invalid dependencies type');
-                }
-            } else {
-                factories.set(key, () => fn());
+        for (let i = moduleLength; i >= 0; i--) {
+            const module = modulesArray[i];
+            const binding = module.bindings.get(key);
+            if (binding) {
+                return binding;
             }
-        };
-
-        const toFactory = (factory: CallableFunction) => factories.set(key, factory);
-
-        const toClass = (AnyClass: new (...args: unknown[]) => unknown, dependencies: DependencyArray = []) => {
-            factories.set(key, () => new AnyClass(...resolveDependenciesArray(dependencies)));
-        };
-
-        return {
-            toValue,
-            toFunction,
-            toFactory,
-            toClass,
-            toHigherOrderFunction
-        };
-    }
-
-    function get<T>(key: symbol): T {
-        if (values.has(key)) {
-            return values.get(key) as T;
         }
 
+        return null;
+    };
+
+    const get = <T>(key: symbol): T => {
         if (instances.has(key)) {
             return instances.get(key) as T;
         }
 
-        if (factories.has(key)) {
-            const factory = factories.get(key)!;
-            instances.set(key, factory());
-            return instances.get(key) as T;
+        const binding = findLastBinding(key);
+        if (!binding) {
+            throw new Error(`No binding found for key: ${key.toString()}`);
         }
 
-        throw new Error(`No binding found for key: ${key.toString()}`);
-    }
+        const instance = binding((depKey: symbol) => get(depKey));
+        instances.set(key, instance);
+        return instance as T;
+    };
 
-    return {bind, get};
+    return {bind, load, get, unload};
 }

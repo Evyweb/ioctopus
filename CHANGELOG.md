@@ -1,5 +1,12 @@
 # @evyweb/ioctopus
 
+## 0.3.0
+
+### Minor Changes
+
+- Modules support
+- Scopes support
+
 ## 0.2.2
 
 ### Patch Changes

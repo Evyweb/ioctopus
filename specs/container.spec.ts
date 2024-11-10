@@ -1,18 +1,18 @@
-import {MyService} from "./MyService";
-import {MyServiceInterface} from "./MyServiceInterface";
-import {SayHelloType} from "./SayHelloType";
-import {sayHelloWorld} from "./sayHelloWorld";
-import {MyUseCase} from "./MyUseCase";
-import {MyUseCaseInterface} from "./MyUseCaseInterface";
-import {LoggerInterface} from "./LoggerInterface";
-import {DI} from "./DI";
+import {MyService} from "./examples/MyService";
+import {MyServiceInterface} from "./examples/MyServiceInterface";
+import {SayHelloType} from "./examples/SayHelloType";
+import {sayHelloWorld} from "./examples/sayHelloWorld";
+import {MyUseCase} from "./examples/MyUseCase";
+import {MyUseCaseInterface} from "./examples/MyUseCaseInterface";
+import {LoggerInterface} from "./examples/LoggerInterface";
+import {DI} from "./examples/DI";
 import {Container, createContainer} from "../src";
-import {MyServiceClass} from "./MyServiceClass";
-import {MyServiceClassInterface} from "./MyServiceClassInterface";
-import {FunctionWithDependencies} from "./FunctionWithDependencies";
-import {HigherOrderFunctionWithoutDependencies} from "./HigherOrderFunctionWithoutDependencies";
-import {ServiceWithoutDependencyInterface} from "./ServiceWithoutDependencyInterface";
-import {MyServiceClassWithoutDependencies} from "./MyServiceClassWithoutDependencies";
+import {MyServiceClass} from "./examples/MyServiceClass";
+import {MyServiceClassInterface} from "./examples/MyServiceClassInterface";
+import {FunctionWithDependencies} from "./examples/FunctionWithDependencies";
+import {HigherOrderFunctionWithoutDependencies} from "./examples/HigherOrderFunctionWithoutDependencies";
+import {ServiceWithoutDependencyInterface} from "./examples/ServiceWithoutDependencyInterface";
+import {MyServiceClassWithoutDependencies} from "./examples/MyServiceClassWithoutDependencies";
 import {mock, MockProxy} from "vitest-mock-extended";
 
 describe('Container', () => {
@@ -80,9 +80,9 @@ describe('Container', () => {
         });
 
         describe.each([
-            { dependencies: undefined },
-            { dependencies: [] },
-            { dependencies: {} },
+            {dependencies: undefined},
+            {dependencies: []},
+            {dependencies: {}},
         ])('When the function is a higher order function without dependencies', ({dependencies}) => {
             it('should just return the function', () => {
                 // Arrange
@@ -154,31 +154,6 @@ describe('Container', () => {
                     expect(fakeLogger.log).toHaveBeenCalledWith('hello world');
                 });
             });
-
-            describe('When the dependency is retrieved twice', () => {
-                it('should return the same instance', () => {
-                    // Arrange
-                    const factoryCalls = vi.fn();
-                    container.bind(DI.DEP1).toValue('dependency1');
-                    container.bind(DI.DEP2).toValue(42);
-
-                    container.bind(DI.MY_SERVICE).toFactory(() => {
-                        factoryCalls();
-                        return MyService({
-                            dep1: container.get<string>(DI.DEP1),
-                            dep2: container.get<number>(DI.DEP2)
-                        });
-                    });
-                    const myService1 = container.get<MyServiceInterface>(DI.MY_SERVICE);
-
-                    // Act
-                    const myService2 = container.get<MyServiceInterface>(DI.MY_SERVICE);
-
-                    // Assert
-                    expect(myService1).toBe(myService2);
-                    expect(factoryCalls).toHaveBeenCalledTimes(1);
-                });
-            });
         });
     });
 
@@ -201,8 +176,6 @@ describe('Container', () => {
         describe('When the class has no dependency', () => {
             it('should just return the instance', () => {
                 // Arrange
-                container.bind(DI.DEP1).toValue('dependency1');
-                container.bind(DI.DEP2).toValue(42);
                 container.bind(DI.CLASS_WITHOUT_DEPENDENCIES).toClass(MyServiceClassWithoutDependencies);
 
                 // Act
@@ -210,22 +183,6 @@ describe('Container', () => {
 
                 // Assert
                 expect(myService.runTask()).toBe('Executing without dependencies');
-            });
-        });
-
-        describe('When the instance is retrieved twice', () => {
-            it('should always return the same instance', () => {
-                // Arrange
-                container.bind(DI.DEP1).toValue('dependency1');
-                container.bind(DI.DEP2).toValue(42);
-                container.bind(DI.CLASS_WITH_DEPENDENCIES).toClass(MyServiceClass, [DI.DEP1, DI.DEP2]);
-                const myService1 = container.get<MyServiceClassInterface>(DI.CLASS_WITH_DEPENDENCIES);
-
-                // Act
-                const myService2 = container.get<MyServiceClassInterface>(DI.CLASS_WITH_DEPENDENCIES);
-
-                // Assert
-                expect(myService1).toBe(myService2);
             });
         });
     });

@@ -1,4 +1,4 @@
-import {InjectionTokens} from "../src";
+import {InjectionTokens} from "../../src";
 
 export const DI: InjectionTokens = {
     DEP1: Symbol('DEP1'),

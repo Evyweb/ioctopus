@@ -1,4 +1,7 @@
 # A simple IOC container for Typescript
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/evyweb/ioctopus/main.yml)
+[![codecov](https://codecov.io/gh/Evyweb/ioctopus/graph/badge.svg?token=A3Z8UCNHDY)](https://codecov.io/gh/Evyweb/ioctopus)
+![NPM Downloads](https://img.shields.io/npm/dm/%40evyweb%2Fioctopus)
 
 ![logo-ioctopus.png](assets/logo-ioctopus.png)
 
@@ -250,10 +253,12 @@ To use the scoped scope, you need to create a scope using runInScope.
 
 ```typescript
 container.bind(DI.MY_SERVICE).toClass(MyServiceClass, [DI.DEP1, DI.DEP2], 'scoped');
+const instance1 = undefined;
+const instance2 = undefined;
 
 container.runInScope(() => {
-    const instance1 = container.get<MyServiceClassInterface>(DI.MY_SERVICE);
-    const instance2 = container.get<MyServiceClassInterface>(DI.MY_SERVICE);
+    instance1 = container.get<MyServiceClassInterface>(DI.MY_SERVICE);
+    instance2 = container.get<MyServiceClassInterface>(DI.MY_SERVICE);
 
     console.log(instance1 === instance2); // true
 });

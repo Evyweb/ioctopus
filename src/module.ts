@@ -1,14 +1,15 @@
-import { DependencyArray, DependencyObject, Module, ResolveFunction } from "./types";
+import { DependencyArray, DependencyObject, Module, ResolveFunction, Scope } from "./types";
 
 interface Binding {
     factory: (resolve: ResolveFunction) => unknown;
-    scope: 'singleton' | 'transient' | 'scoped';
+    scope: Scope;
 }
 
 export function createModule(): Module {
     const bindings = new Map<symbol, Binding>();
 
-    const resolveDependenciesArray = (dependencies: DependencyArray, resolve: ResolveFunction) => dependencies.map(resolve);
+    const resolveDependenciesArray = (dependencies: DependencyArray, resolve: ResolveFunction) =>
+        dependencies.map(resolve);
 
     const resolveDependenciesObject = (dependencies: DependencyObject, resolve: ResolveFunction) => {
         const entries = Object.entries(dependencies);
@@ -19,24 +20,24 @@ export function createModule(): Module {
         Array.isArray(dependencies);
 
     const isDependencyObject = (dependencies: DependencyArray | DependencyObject): dependencies is DependencyObject =>
-        dependencies !== null && typeof dependencies === 'object' && !Array.isArray(dependencies);
+        dependencies !== null && typeof dependencies === "object" && !Array.isArray(dependencies);
 
     const bind = (key: symbol) => {
-        const toValue = (value: unknown, scope: 'singleton' | 'transient' | 'scoped' = 'singleton') => {
-            bindings.set(key, { factory: () => value, scope });
+        const toValue = (value: unknown) => {
+            bindings.set(key, { factory: () => value, scope: 'singleton' });
         };
 
-        const toFunction = (fn: CallableFunction, scope: 'singleton' | 'transient' | 'scoped' = 'singleton') => {
-            bindings.set(key, { factory: () => fn, scope });
+        const toFunction = (fn: CallableFunction) => {
+            bindings.set(key, { factory: () => fn, scope: 'singleton' });
         };
 
         const toHigherOrderFunction = (
             fn: CallableFunction,
             dependencies?: DependencyArray | DependencyObject,
-            scope: 'singleton' | 'transient' | 'scoped' = 'singleton'
+            scope: Scope = 'singleton'
         ) => {
             if (dependencies && !isDependencyArray(dependencies) && !isDependencyObject(dependencies)) {
-                throw new Error('Invalid dependencies type');
+                throw new Error("Invalid dependencies type");
             }
 
             const factory = (resolve: ResolveFunction) => {
@@ -54,17 +55,17 @@ export function createModule(): Module {
             bindings.set(key, { factory, scope });
         };
 
-        const toFactory = (factory: CallableFunction, scope: 'singleton' | 'transient' | 'scoped' = 'singleton') => {
+        const toFactory = (factory: CallableFunction, scope: Scope = 'singleton') => {
             bindings.set(key, { factory: (resolve: ResolveFunction) => factory(resolve), scope });
         };
 
         const toClass = (
             AnyClass: new (...args: unknown[]) => unknown,
             dependencies: DependencyArray = [],
-            scope: 'singleton' | 'transient' | 'scoped' = 'singleton'
+            scope: Scope = 'singleton'
         ) => {
             const factory = (resolve: ResolveFunction) => {
-                const resolvedDeps = dependencies.map(dep => resolve(dep));
+                const resolvedDeps = dependencies.map((dep) => resolve(dep));
                 return new AnyClass(...resolvedDeps);
             };
 
@@ -76,7 +77,7 @@ export function createModule(): Module {
             toFunction,
             toFactory,
             toClass,
-            toHigherOrderFunction
+            toHigherOrderFunction,
         };
     };
 

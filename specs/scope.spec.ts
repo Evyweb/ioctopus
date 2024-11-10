@@ -2,14 +2,14 @@ import {Container, createContainer, Scope} from "../src";
 import {DI} from "./examples/DI";
 import {MyService} from "./examples/MyService";
 import {MyServiceInterface} from "./examples/MyServiceInterface";
-import {vi} from "vitest";
-import {sayHelloWorld} from "./examples/sayHelloWorld";
-import {SayHelloType} from "./examples/SayHelloType";
+import {Mock, vi} from "vitest";
+import {MyServiceClass} from "./examples/MyServiceClass";
+import {MyServiceClassInterface} from "./examples/MyServiceClassInterface";
 
 describe('Scope', () => {
 
     let container: Container;
-    let factoryCalls = vi.fn();
+    let factoryCalls: Mock;
 
     beforeEach(() => {
         container = createContainer();
@@ -18,109 +18,186 @@ describe('Scope', () => {
         factoryCalls = vi.fn();
     });
 
-    describe.each([
-        {scope: undefined},
-        {scope: 'singleton'},
-    ])('When the scope is default or defined to "singleton"', ({scope}) => {
-        it('should return the same instance', () => {
-            // Arrange
-            container.bind(DI.MY_SERVICE).toFactory(() => {
-                factoryCalls();
-                return MyService({
-                    dep1: container.get<string>(DI.DEP1),
-                    dep2: container.get<number>(DI.DEP2)
+    describe('Factories', () => {
+
+        describe.each([
+            {scope: undefined},
+            {scope: 'singleton'},
+        ])('When the scope is default or defined to "singleton"', ({scope}) => {
+            it('should return the same instance', () => {
+                // Arrange
+                container.bind(DI.MY_SERVICE).toFactory(() => {
+                    factoryCalls();
+                    return MyService({
+                        dep1: container.get<string>(DI.DEP1),
+                        dep2: container.get<number>(DI.DEP2)
+                    });
+                }, scope as Scope);
+
+                const myService1 = container.get<MyServiceInterface>(DI.MY_SERVICE);
+
+                // Act
+                const myService2 = container.get<MyServiceInterface>(DI.MY_SERVICE);
+
+                // Assert
+                expect(myService1).toBe(myService2);
+                expect(factoryCalls).toHaveBeenCalledTimes(1);
+            });
+        });
+
+        describe('When the scope is defined to "transient"', () => {
+            it('should return a new instance each time', () => {
+                // Arrange
+                container.bind(DI.MY_SERVICE).toFactory(() => {
+                    factoryCalls();
+                    return MyService({
+                        dep1: container.get<string>(DI.DEP1),
+                        dep2: container.get<number>(DI.DEP2)
+                    });
+                }, 'transient');
+
+                const myService1 = container.get<MyServiceInterface>(DI.MY_SERVICE);
+
+                // Act
+                const myService2 = container.get<MyServiceInterface>(DI.MY_SERVICE);
+
+                // Assert
+                expect(myService1).not.toBe(myService2);
+                expect(factoryCalls).toHaveBeenCalledTimes(2);
+            });
+        });
+
+        describe('When the scope is defined to "scoped"', () => {
+            it('should return the same instance within the same scope', () => {
+                // Arrange
+                container.bind(DI.DEP1).toValue('dependency1');
+                container.bind(DI.DEP2).toValue(42);
+                container.bind(DI.MY_SERVICE).toFactory(() => {
+                    factoryCalls();
+                    return MyService({
+                        dep1: container.get<string>(DI.DEP1),
+                        dep2: container.get<number>(DI.DEP2)
+                    });
+                }, 'scoped');
+
+                let myService1: MyServiceInterface | undefined;
+                let myService2: MyServiceInterface | undefined;
+
+                // Act
+                container.runInScope(() => {
+                    myService1 = container.get<MyServiceInterface>(DI.MY_SERVICE);
+                    myService2 = container.get<MyServiceInterface>(DI.MY_SERVICE);
                 });
-            }, scope as Scope);
 
-            const myService1 = container.get<MyServiceInterface>(DI.MY_SERVICE);
+                // Assert
+                expect(myService1).toBeDefined();
+                expect(myService2).toBeDefined();
+                expect(myService1).toBe(myService2);
+                expect(factoryCalls).toHaveBeenCalledTimes(1);
+            });
 
-            // Act
-            const myService2 = container.get<MyServiceInterface>(DI.MY_SERVICE);
+            it('should return different instances in different scopes', () => {
+                // Arrange
+                container.bind(DI.MY_SERVICE).toFactory(() => {
+                    factoryCalls();
+                    return MyService({
+                        dep1: container.get<string>(DI.DEP1),
+                        dep2: container.get<number>(DI.DEP2)
+                    });
+                }, 'scoped');
 
-            // Assert
-            expect(myService1).toBe(myService2);
-            expect(factoryCalls).toHaveBeenCalledTimes(1);
+                let myService1: MyServiceInterface | undefined;
+                let myService2: MyServiceInterface | undefined;
+
+                container.runInScope(() => {
+                    myService1 = container.get<MyServiceInterface>(DI.MY_SERVICE);
+                });
+
+                // Act
+                container.runInScope(() => {
+                    myService2 = container.get<MyServiceInterface>(DI.MY_SERVICE);
+                });
+
+                // Assert
+                expect(myService1).toBeDefined();
+                expect(myService2).toBeDefined();
+                expect(myService1).not.toBe(myService2);
+                expect(factoryCalls).toHaveBeenCalledTimes(2);
+            });
         });
     });
 
-    describe('When the scope is defined to "transient"', () => {
-        it('should return a new instance each time', () => {
-            // Arrange
-            container.bind(DI.MY_SERVICE).toFactory(() => {
-                factoryCalls();
-                return MyService({
-                    dep1: container.get<string>(DI.DEP1),
-                    dep2: container.get<number>(DI.DEP2)
-                });
-            }, 'transient');
+    describe('Classes', () => {
 
-            const myService1 = container.get<MyServiceInterface>(DI.MY_SERVICE);
+        describe.each([
+            {scope: undefined},
+            {scope: 'singleton'},
+        ])('When the scope is default or defined to "singleton"', ({scope}) => {
+            it('should return the same instance', () => {
+                // Arrange
+                container.bind(DI.MY_SERVICE).toClass(MyServiceClass, [DI.DEP1, DI.DEP2], scope as Scope);
 
-            // Act
-            const myService2 = container.get<MyServiceInterface>(DI.MY_SERVICE);
+                const myService1 = container.get<MyServiceInterface>(DI.MY_SERVICE);
 
-            // Assert
-            expect(myService1).not.toBe(myService2);
-            expect(factoryCalls).toHaveBeenCalledTimes(2);
+                // Act
+                const myService2 = container.get<MyServiceInterface>(DI.MY_SERVICE);
+
+                // Assert
+                expect(myService1).toBe(myService2);
+            });
+        });
+
+        describe('When the scope is defined to "transient"', () => {
+            it('should return a new instance each time', () => {
+                // Arrange
+                container.bind(DI.MY_SERVICE).toClass(MyServiceClass, [DI.DEP1, DI.DEP2], 'transient');
+
+                const myService1 = container.get<MyServiceInterface>(DI.MY_SERVICE);
+
+                // Act
+                const myService2 = container.get<MyServiceInterface>(DI.MY_SERVICE);
+
+                // Assert
+                expect(myService1).not.toBe(myService2);
+            });
         });
     });
 
-    describe('When the scope is defined to "scoped"', () => {
-        it('should return the same instance within the same scope', () => {
-            // Arrange
-            container.bind(DI.DEP1).toValue('dependency1');
-            container.bind(DI.DEP2).toValue(42);
-            container.bind(DI.MY_SERVICE).toFactory(() => {
-                factoryCalls();
-                return MyService({
-                    dep1: container.get<string>(DI.DEP1),
-                    dep2: container.get<number>(DI.DEP2)
-                });
-            }, 'scoped');
+    describe('Higher order functions', () => {
 
-            let myService1: MyServiceInterface | undefined;
-            let myService2: MyServiceInterface | undefined;
+        describe.each([
+            {scope: undefined},
+            {scope: 'singleton'},
+        ])('When the scope is default or defined to "singleton"', ({scope}) => {
+            it('should return the same instance', () => {
+                // Arrange
+                container.bind(DI.MY_SERVICE)
+                    .toHigherOrderFunction(MyService, {dep1: DI.DEP1, dep2: DI.DEP2}, scope as Scope);
 
-            // Act
-            container.runInScope(() => {
-                myService1 = container.get<MyServiceInterface>(DI.MY_SERVICE);
-                myService2 = container.get<MyServiceInterface>(DI.MY_SERVICE);
+                const myService1 = container.get<MyServiceInterface>(DI.MY_SERVICE);
+
+                // Act
+                const myService2 = container.get<MyServiceInterface>(DI.MY_SERVICE);
+
+                // Assert
+                expect(myService1).toBe(myService2);
             });
-
-            // Assert
-            expect(myService1).toBeDefined();
-            expect(myService2).toBeDefined();
-            expect(myService1).toBe(myService2);
-            expect(factoryCalls).toHaveBeenCalledTimes(1);
         });
 
-        it('should return different instances in different scopes', () => {
-            // Arrange
-            container.bind(DI.MY_SERVICE).toFactory(() => {
-                factoryCalls();
-                return MyService({
-                    dep1: container.get<string>(DI.DEP1),
-                    dep2: container.get<number>(DI.DEP2)
-                });
-            }, 'scoped');
+        describe('When the scope is defined to "transient"', () => {
+            it('should return a new instance each time', () => {
+                // Arrange
+                container.bind(DI.MY_SERVICE)
+                    .toHigherOrderFunction(MyService, {dep1: DI.DEP1, dep2: DI.DEP2}, 'transient');
 
-            let myService1: MyServiceInterface | undefined;
-            let myService2: MyServiceInterface | undefined;
+                const myService1 = container.get<MyServiceInterface>(DI.MY_SERVICE);
 
-            container.runInScope(() => {
-                myService1 = container.get<MyServiceInterface>(DI.MY_SERVICE);
+                // Act
+                const myService2 = container.get<MyServiceInterface>(DI.MY_SERVICE);
+
+                // Assert
+                expect(myService1).not.toBe(myService2);
             });
-
-            // Act
-            container.runInScope(() => {
-                myService2 = container.get<MyServiceInterface>(DI.MY_SERVICE);
-            });
-
-            // Assert
-            expect(myService1).toBeDefined();
-            expect(myService2).toBeDefined();
-            expect(myService1).not.toBe(myService2);
-            expect(factoryCalls).toHaveBeenCalledTimes(2);
         });
     });
 
@@ -139,10 +216,10 @@ describe('Scope', () => {
     describe('When an unknown scope is used during binding', () => {
         it('should throw an error', () => {
             // Arrange
-            container.bind(DI.MY_SERVICE).toFunction(sayHelloWorld, 'unknown' as any);
+            container.bind(DI.MY_SERVICE).toClass(MyServiceClass, [], 'unknown' as any);
 
             // Act & Assert
-            expect(() => container.get<SayHelloType>(DI.MY_SERVICE))
+            expect(() => container.get<MyServiceClassInterface>(DI.MY_SERVICE))
                 .toThrowError('Unknown scope: unknown');
         });
     });

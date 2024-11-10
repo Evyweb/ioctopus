@@ -1,5 +1,5 @@
-import {Binding, Container, Module} from "./types";
-import {createModule} from "./module";
+import { Binding, Container, Module } from "./types";
+import { createModule } from "./module";
 
 export function createContainer(): Container {
     const modules = new Map<symbol, Module>();
@@ -7,8 +7,9 @@ export function createContainer(): Container {
     const scopedInstances = new Map<symbol, Map<symbol, unknown>>();
     let currentScopeId: symbol | undefined;
 
+    const DEFAULT_MODULE_KEY = Symbol("DEFAULT");
     const defaultModule = createModule();
-    modules.set(Symbol('DEFAULT'), defaultModule);
+    modules.set(DEFAULT_MODULE_KEY, defaultModule);
 
     const bind = (key: symbol) => defaultModule.bind(key);
 
@@ -37,18 +38,18 @@ export function createContainer(): Container {
 
         const { factory, scope } = binding;
 
-        if (scope === 'singleton') {
+        if (scope === "singleton") {
             if (!singletonInstances.has(key)) {
                 singletonInstances.set(key, factory(resolveDependency));
             }
             return singletonInstances.get(key) as T;
         }
 
-        if (scope === 'transient') {
+        if (scope === "transient") {
             return factory(resolveDependency) as T;
         }
 
-        if (scope === 'scoped') {
+        if (scope === "scoped") {
             if (!currentScopeId) throw new Error(`Cannot resolve scoped binding outside of a scope: ${key.toString()}`);
 
             if (!scopedInstances.has(currentScopeId)) {
@@ -71,7 +72,7 @@ export function createContainer(): Container {
 
     const runInScope = <T>(callback: () => T): T => {
         const previousScopeId = currentScopeId;
-        currentScopeId = Symbol('scope');
+        currentScopeId = Symbol("scope");
         try {
             return callback();
         } finally {

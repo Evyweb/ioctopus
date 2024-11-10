@@ -8,8 +8,8 @@ export type Scope = 'singleton' | 'transient' | 'scoped';
 
 export interface Container {
     bind(key: symbol): {
-        toValue: (value: unknown, scope?: Scope) => void;
-        toFunction: (fn: CallableFunction, scope?: Scope) => void;
+        toValue: (value: unknown) => void;
+        toFunction: (fn: CallableFunction) => void;
         toHigherOrderFunction: (
             fn: CallableFunction,
             dependencies?: DependencyArray | DependencyObject,
@@ -34,8 +34,8 @@ export interface Container {
 
 export interface Module {
     bind(key: symbol): {
-        toValue: (value: unknown, scope?: Scope) => void;
-        toFunction: (fn: CallableFunction, scope?: Scope) => void;
+        toValue: (value: unknown) => void;
+        toFunction: (fn: CallableFunction) => void;
         toHigherOrderFunction: (
             fn: CallableFunction,
             dependencies?: DependencyArray | DependencyObject,

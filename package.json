@@ -1,6 +1,6 @@
 {
   "name": "@evyweb/ioctopus",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "A simple IoC container for JavaScript and TypeScript for classes and functions.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",

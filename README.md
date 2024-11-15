@@ -1,7 +1,10 @@
 # A simple IOC container for Typescript
+[![NPM Version](https://img.shields.io/npm/v/%40evyweb%2Fioctopus.svg?style=flat)]()
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/evyweb/ioctopus/main.yml)
 [![codecov](https://codecov.io/gh/Evyweb/ioctopus/graph/badge.svg?token=A3Z8UCNHDY)](https://codecov.io/gh/Evyweb/ioctopus)
+
 ![NPM Downloads](https://img.shields.io/npm/dm/%40evyweb%2Fioctopus)
+[![NPM Downloads](https://img.shields.io/npm/dt/%40evyweb%2Fioctopus.svg?style=flat)]()
 
 ![logo-ioctopus.png](assets/logo-ioctopus.png)
 

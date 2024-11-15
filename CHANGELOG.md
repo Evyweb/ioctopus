@@ -1,5 +1,13 @@
 # @evyweb/ioctopus
 
+## 1.0.0
+
+### Major Changes
+- No breaking changes just first release
+
+### Minor Changes
+- Classes can now have dependency object too
+
 ## 0.3.0
 
 ### Minor Changes

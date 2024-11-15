@@ -14,6 +14,7 @@ import {HigherOrderFunctionWithoutDependencies} from "./examples/HigherOrderFunc
 import {ServiceWithoutDependencyInterface} from "./examples/ServiceWithoutDependencyInterface";
 import {MyServiceClassWithoutDependencies} from "./examples/MyServiceClassWithoutDependencies";
 import {mock, MockProxy} from "vitest-mock-extended";
+import {MyServiceClassWithDependencyObject} from "./examples/MyServiceClassWithDependencyObject";
 
 describe('Container', () => {
 
@@ -159,17 +160,45 @@ describe('Container', () => {
 
     describe('When a class is registered', () => {
         describe('When the class has dependencies', () => {
-            it('should return the instance with the resolved dependencies', () => {
-                // Arrange
-                container.bind(DI.DEP1).toValue('dependency1');
-                container.bind(DI.DEP2).toValue(42);
-                container.bind(DI.CLASS_WITH_DEPENDENCIES).toClass(MyServiceClass, [DI.DEP1, DI.DEP2]);
+            describe('When the dependencies are defined in an array', () => {
+                it('should return the instance with the resolved dependencies', () => {
+                    // Arrange
+                    container.bind(DI.DEP1).toValue('dependency1');
+                    container.bind(DI.DEP2).toValue(42);
+                    container.bind(DI.CLASS_WITH_DEPENDENCIES).toClass(MyServiceClass, [DI.DEP1, DI.DEP2]);
 
-                // Act
-                const myService = container.get<MyServiceClassInterface>(DI.CLASS_WITH_DEPENDENCIES);
+                    // Act
+                    const myService = container.get<MyServiceClassInterface>(DI.CLASS_WITH_DEPENDENCIES);
 
-                // Assert
-                expect(myService.runTask()).toBe('Executing with dep1: dependency1 and dep2: 42');
+                    // Assert
+                    expect(myService.runTask()).toBe('Executing with dep1: dependency1 and dep2: 42');
+                });
+            });
+
+            describe('When the dependencies are defined in an object', () => {
+                it('should return the instance with the resolved dependencies', () => {
+                    // Arrange
+                    container.bind(DI.DEP1).toValue('dependency1');
+                    container.bind(DI.DEP2).toValue(42);
+                    container.bind(DI.CLASS_WITH_DEPENDENCIES).toClass(MyServiceClassWithDependencyObject, {dep1: DI.DEP1, dep2: DI.DEP2});
+
+                    // Act
+                    const myService = container.get<MyServiceClassInterface>(DI.CLASS_WITH_DEPENDENCIES);
+
+                    // Assert
+                    expect(myService.runTask()).toBe('Executing with dep1: dependency1 and dep2: 42');
+                });
+            });
+
+            describe('When the dependencies are defined in an other format', () => {
+                it('should throw an error', () => {
+                    // Act & Assert
+                    container.bind(DI.DEP1).toValue('dependency1');
+                    container.bind(DI.DEP2).toValue(42);
+                    expect(() => container.bind(DI.CLASS_WITH_DEPENDENCIES)
+                        .toClass(MyServiceClassWithDependencyObject, 'invalid' as any))
+                        .toThrowError('Invalid dependencies type');
+                });
             });
         });
 

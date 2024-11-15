@@ -18,7 +18,7 @@ export interface Container {
         toFactory: (factory: CallableFunction, scope?: Scope) => void;
         toClass: <C>(
             constructor: new (...args: any[]) => C,
-            dependencies?: DependencyArray,
+            dependencies?: DependencyArray | DependencyObject,
             scope?: Scope
         ) => void;
     };
@@ -44,7 +44,7 @@ export interface Module {
         toFactory: (factory: CallableFunction, scope?: Scope) => void;
         toClass: <C>(
             constructor: new (...args: any[]) => C,
-            dependencies?: DependencyArray,
+            dependencies?: DependencyArray | DependencyObject,
             scope?: Scope
         ) => void;
     };

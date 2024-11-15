@@ -61,12 +61,28 @@ export function createModule(): Module {
 
         const toClass = (
             AnyClass: new (...args: unknown[]) => unknown,
-            dependencies: DependencyArray = [],
+            dependencies?: DependencyArray | DependencyObject,
             scope: Scope = 'singleton'
         ) => {
+
+            if (dependencies && !isDependencyArray(dependencies) && !isDependencyObject(dependencies)) {
+                throw new Error("Invalid dependencies type");
+            }
+
             const factory = (resolve: ResolveFunction) => {
-                const resolvedDeps = dependencies.map((dep) => resolve(dep));
-                return new AnyClass(...resolvedDeps);
+                if (!dependencies) {
+                    return new AnyClass();
+                }
+
+                if (isDependencyArray(dependencies)) {
+                    const resolvedDeps = resolveDependenciesArray(dependencies, resolve);
+                    return new AnyClass(...resolvedDeps);
+                }
+
+                if (isDependencyObject(dependencies)) {
+                    const resolvedDeps = resolveDependenciesObject(dependencies, resolve);
+                    return new AnyClass({ ...resolvedDeps });
+                }
             };
 
             bindings.set(key, { factory, scope });

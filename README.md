@@ -125,6 +125,25 @@ class MyServiceClass implements MyServiceClassInterface {
 container.bind(DI.CLASS_WITH_DEPENDENCIES).toClass(MyServiceClass, [DI.DEP1, DI.DEP2]);
 ```
 
+- But if you prefer, you can also use a dependency object
+```typescript
+
+interface Dependencies {
+    dep1: string,
+    dep2: number
+}
+
+class MyServiceClass implements MyServiceClassInterface {
+    constructor(private readonly dependencies: Dependencies) {}
+
+    runTask(): string {
+        return `Executing with dep1: ${this.dependencies.dep1} and dep2: ${this.dependencies.dep2}`;
+    }
+}
+
+container.bind(DI.CLASS_WITH_DEPENDENCIES).toClass(MyServiceClass, {dep1: DI.DEP1, dep2: DI.DEP2});
+```
+
 - You can register classes without dependencies
 ```typescript
 class MyServiceClassWithoutDependencies implements MyServiceClassInterface {

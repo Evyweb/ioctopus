@@ -17,7 +17,17 @@
     "changeset:version": "npx changeset version",
     "publish:package": "npm run build && npx changeset publish"
   },
-  "keywords": [],
+  "keywords": [
+    "ioc",
+    "inversion of control",
+    "dependency injection",
+    "dependency inversion",
+    "typescript",
+    "inversify",
+    "typescript-ioc",
+    "tsyringe",
+    "di"
+  ],
   "author": "Evyweb",
   "license": "MIT",
   "repository": {

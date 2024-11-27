@@ -223,4 +223,30 @@ describe('Container', () => {
                 .toThrowError(`No binding found for key: ${DI.NOT_REGISTERED_VALUE.toString()}`);
         });
     });
+
+    describe('When circular dependency is detected', () => {
+        it('should throw an error when a circular dependency is detected', () => {
+            // Arrange
+            const container = createContainer();
+
+            const A_TOKEN = Symbol('A');
+            const B_TOKEN = Symbol('B');
+
+            class A {
+                constructor(public b: B) {}
+            }
+
+            class B {
+                constructor(public a: A) {}
+            }
+
+            container.bind(A_TOKEN).toClass(A, [B_TOKEN]);
+            container.bind(B_TOKEN).toClass(B, [A_TOKEN]);
+
+            // Act & Assert
+            expect(() => {
+                container.get(A_TOKEN);
+            }).toThrowError(/Circular dependency detected: Symbol\(A\) -> Symbol\(B\) -> Symbol\(A\)/);
+        });
+    });
 });

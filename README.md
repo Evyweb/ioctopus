@@ -293,3 +293,30 @@ container.runInScope(() => {
 ```
 
 Note: If you try to resolve a scoped dependency outside a scope, an error will be thrown.
+
+### Circular dependencies
+
+IOctopus can detect circular dependencies. 
+An error will be thrown if a circular dependency is detected.
+
+```typescript
+const container = createContainer();
+
+const A_TOKEN = Symbol('A');
+const B_TOKEN = Symbol('B');
+
+class A {
+    constructor(public b: B) {}
+}
+
+class B {
+    constructor(public a: A) {}
+}
+
+container.bind(A_TOKEN).toClass(A, [B_TOKEN]);
+container.bind(B_TOKEN).toClass(B, [A_TOKEN]);
+
+container.get(A_TOKEN); // Will throw: "Circular dependency detected: Symbol(A) -> Symbol(B) -> Symbol(A)"
+```
+
+This way you can avoid infinite loops and stack overflow errors.

@@ -1,13 +1,14 @@
-import { Binding, Container, Module } from "./types";
-import { createModule } from "./module";
+import { Binding, Container, Module } from './types';
+import { createModule } from './module';
 
 export function createContainer(): Container {
     const modules = new Map<symbol, Module>();
     const singletonInstances = new Map<symbol, unknown>();
     const scopedInstances = new Map<symbol, Map<symbol, unknown>>();
+    const resolutionStack: symbol[] = [];
     let currentScopeId: symbol | undefined;
 
-    const DEFAULT_MODULE_KEY = Symbol("DEFAULT");
+    const DEFAULT_MODULE_KEY = Symbol('DEFAULT');
     const defaultModule = createModule();
     modules.set(DEFAULT_MODULE_KEY, defaultModule);
 
@@ -33,37 +34,49 @@ export function createContainer(): Container {
     };
 
     const get = <T>(key: symbol): T => {
-        const binding = findLastBinding(key);
-        if (!binding) throw new Error(`No binding found for key: ${key.toString()}`);
-
-        const { factory, scope } = binding;
-
-        if (scope === "singleton") {
-            if (!singletonInstances.has(key)) {
-                singletonInstances.set(key, factory(resolveDependency));
-            }
-            return singletonInstances.get(key) as T;
+        if (resolutionStack.includes(key)) {
+            const cycle = [...resolutionStack, key].map((k) => k.toString()).join(' -> ');
+            throw new Error(`Circular dependency detected: ${cycle}`);
         }
 
-        if (scope === "transient") {
-            return factory(resolveDependency) as T;
-        }
+        resolutionStack.push(key);
 
-        if (scope === "scoped") {
-            if (!currentScopeId) throw new Error(`Cannot resolve scoped binding outside of a scope: ${key.toString()}`);
+        try {
+            const binding = findLastBinding(key);
+            if (!binding) throw new Error(`No binding found for key: ${key.toString()}`);
 
-            if (!scopedInstances.has(currentScopeId)) {
-                scopedInstances.set(currentScopeId, new Map<symbol, unknown>());
+            const { factory, scope } = binding;
+
+            if (scope === 'singleton') {
+                if (!singletonInstances.has(key)) {
+                    singletonInstances.set(key, factory(resolveDependency));
+                }
+                return singletonInstances.get(key) as T;
             }
-            const scopeMap = scopedInstances.get(currentScopeId)!;
-            if (!scopeMap.has(key)) {
-                scopeMap.set(key, factory(resolveDependency));
+
+            if (scope === 'transient') {
+                return factory(resolveDependency) as T;
             }
 
-            return scopeMap.get(key) as T;
-        }
+            if (scope === 'scoped') {
+                if (!currentScopeId)
+                    throw new Error(`Cannot resolve scoped binding outside of a scope: ${key.toString()}`);
 
-        throw new Error(`Unknown scope: ${scope}`);
+                if (!scopedInstances.has(currentScopeId)) {
+                    scopedInstances.set(currentScopeId, new Map<symbol, unknown>());
+                }
+                const scopeMap = scopedInstances.get(currentScopeId)!;
+                if (!scopeMap.has(key)) {
+                    scopeMap.set(key, factory(resolveDependency));
+                }
+
+                return scopeMap.get(key) as T;
+            }
+
+            throw new Error(`Unknown scope: ${scope}`);
+        } finally {
+            resolutionStack.pop();
+        }
     };
 
     const resolveDependency = (depKey: symbol): unknown => {
@@ -72,7 +85,7 @@ export function createContainer(): Container {
 
     const runInScope = <T>(callback: () => T): T => {
         const previousScopeId = currentScopeId;
-        currentScopeId = Symbol("scope");
+        currentScopeId = Symbol('scope');
         try {
             return callback();
         } finally {

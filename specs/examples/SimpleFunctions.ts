@@ -1,3 +1,3 @@
-import {SayHelloType} from "./SayHelloType";
+import {SayHelloType} from "./types";
 
 export const sayHelloWorld: SayHelloType = () => 'hello world';

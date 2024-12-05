@@ -1,4 +1,4 @@
-import { DependencyArray, DependencyObject, Module, ResolveFunction, Scope } from "./types";
+import {DependencyArray, DependencyObject, Module, ResolveFunction, Scope} from "./types";
 
 interface Binding {
     factory: (resolve: ResolveFunction) => unknown;
@@ -24,11 +24,11 @@ export function createModule(): Module {
 
     const bind = (key: symbol) => {
         const toValue = (value: unknown) => {
-            bindings.set(key, { factory: () => value, scope: 'singleton' });
+            bindings.set(key, {factory: () => value, scope: 'singleton'});
         };
 
         const toFunction = (fn: CallableFunction) => {
-            bindings.set(key, { factory: () => fn, scope: 'singleton' });
+            bindings.set(key, {factory: () => fn, scope: 'singleton'});
         };
 
         const toHigherOrderFunction = (
@@ -49,16 +49,16 @@ export function createModule(): Module {
                     return fn(...resolveDependenciesArray(dependencies, resolve));
                 }
 
-                return fn({ ...resolveDependenciesObject(dependencies, resolve) });
+                return fn({...resolveDependenciesObject(dependencies, resolve)});
             };
 
-            bindings.set(key, { factory, scope });
+            bindings.set(key, {factory, scope});
         };
 
         const toCurry = toHigherOrderFunction;
 
         const toFactory = (factory: CallableFunction, scope: Scope = 'singleton') => {
-            bindings.set(key, { factory: (resolve: ResolveFunction) => factory(resolve), scope });
+            bindings.set(key, {factory: (resolve: ResolveFunction) => factory(resolve), scope});
         };
 
         const toClass = (
@@ -83,11 +83,11 @@ export function createModule(): Module {
 
                 if (isDependencyObject(dependencies)) {
                     const resolvedDeps = resolveDependenciesObject(dependencies, resolve);
-                    return new AnyClass({ ...resolvedDeps });
+                    return new AnyClass({...resolvedDeps});
                 }
             };
 
-            bindings.set(key, { factory, scope });
+            bindings.set(key, {factory, scope});
         };
 
         return {
@@ -100,5 +100,5 @@ export function createModule(): Module {
         };
     };
 
-    return { bind, bindings };
+    return {bind, bindings};
 }

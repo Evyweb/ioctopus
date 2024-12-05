@@ -1,14 +1,10 @@
 import {Container, createContainer, Scope} from "../src";
 import {DI} from "./examples/DI";
-import {MyService} from "./examples/MyService";
-import {MyServiceInterface} from "./examples/MyServiceInterface";
 import {Mock, vi} from "vitest";
-import {MyServiceClass} from "./examples/MyServiceClass";
-import {MyServiceClassInterface} from "./examples/MyServiceClassInterface";
-import {
-    CurriedFunctionWithDependencies,
-    curriedFunctionWithDependencyObject
-} from "./examples/CurriedFunctionWithDependencyObject";
+import {MyServiceClass} from "./examples/Classes";
+import {CurriedFunctionWithDependencies, MyServiceClassInterface, MyServiceInterface} from "./examples/types";
+import {curriedFunctionWithDependencyObject} from "./examples/Currying";
+import {HigherOrderFunctionWithDependencyObject} from "./examples/HigherOrderFunctions";
 
 describe('Scope', () => {
 
@@ -32,7 +28,7 @@ describe('Scope', () => {
                 // Arrange
                 container.bind(DI.MY_SERVICE).toFactory(() => {
                     factoryCalls();
-                    return MyService({
+                    return HigherOrderFunctionWithDependencyObject({
                         dep1: container.get<string>(DI.DEP1),
                         dep2: container.get<number>(DI.DEP2)
                     });
@@ -54,7 +50,7 @@ describe('Scope', () => {
                 // Arrange
                 container.bind(DI.MY_SERVICE).toFactory(() => {
                     factoryCalls();
-                    return MyService({
+                    return HigherOrderFunctionWithDependencyObject({
                         dep1: container.get<string>(DI.DEP1),
                         dep2: container.get<number>(DI.DEP2)
                     });
@@ -78,7 +74,7 @@ describe('Scope', () => {
                 container.bind(DI.DEP2).toValue(42);
                 container.bind(DI.MY_SERVICE).toFactory(() => {
                     factoryCalls();
-                    return MyService({
+                    return HigherOrderFunctionWithDependencyObject({
                         dep1: container.get<string>(DI.DEP1),
                         dep2: container.get<number>(DI.DEP2)
                     });
@@ -104,7 +100,7 @@ describe('Scope', () => {
                 // Arrange
                 container.bind(DI.MY_SERVICE).toFactory(() => {
                     factoryCalls();
-                    return MyService({
+                    return HigherOrderFunctionWithDependencyObject({
                         dep1: container.get<string>(DI.DEP1),
                         dep2: container.get<number>(DI.DEP2)
                     });
@@ -176,7 +172,7 @@ describe('Scope', () => {
             it('should return the same instance', () => {
                 // Arrange
                 container.bind(DI.MY_SERVICE)
-                    .toHigherOrderFunction(MyService, {dep1: DI.DEP1, dep2: DI.DEP2}, scope as Scope);
+                    .toHigherOrderFunction(HigherOrderFunctionWithDependencyObject, {dep1: DI.DEP1, dep2: DI.DEP2}, scope as Scope);
 
                 const myService1 = container.get<MyServiceInterface>(DI.MY_SERVICE);
 
@@ -192,7 +188,7 @@ describe('Scope', () => {
             it('should return a new instance each time', () => {
                 // Arrange
                 container.bind(DI.MY_SERVICE)
-                    .toHigherOrderFunction(MyService, {dep1: DI.DEP1, dep2: DI.DEP2}, 'transient');
+                    .toHigherOrderFunction(HigherOrderFunctionWithDependencyObject, {dep1: DI.DEP1, dep2: DI.DEP2}, 'transient');
 
                 const myService1 = container.get<MyServiceInterface>(DI.MY_SERVICE);
 
@@ -247,7 +243,7 @@ describe('Scope', () => {
         it('should throw an error', () => {
             // Arrange
             container.bind(DI.MY_SERVICE)
-                .toHigherOrderFunction(MyService, {dep1: DI.DEP1, dep2: DI.DEP2}, 'scoped');
+                .toHigherOrderFunction(HigherOrderFunctionWithDependencyObject, {dep1: DI.DEP1, dep2: DI.DEP2}, 'scoped');
 
             // Act & Assert
             expect(() => container.get<MyServiceInterface>(DI.MY_SERVICE))

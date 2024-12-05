@@ -1,5 +1,5 @@
-import { Binding, Container, Module } from './types';
-import { createModule } from './module';
+import {Binding, Container, Module} from './types';
+import {createModule} from './module';
 
 export function createContainer(): Container {
     const modules = new Map<symbol, Module>();
@@ -45,7 +45,7 @@ export function createContainer(): Container {
             const binding = findLastBinding(key);
             if (!binding) throw new Error(`No binding found for key: ${key.toString()}`);
 
-            const { factory, scope } = binding;
+            const {factory, scope} = binding;
 
             if (scope === 'singleton') {
                 if (!singletonInstances.has(key)) {
@@ -94,5 +94,5 @@ export function createContainer(): Container {
         }
     };
 
-    return { bind, load, get, unload, runInScope };
+    return {bind, load, get, unload, runInScope};
 }

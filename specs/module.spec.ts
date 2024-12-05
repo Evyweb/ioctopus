@@ -1,9 +1,8 @@
 import {Container, createContainer, createModule} from "../src";
 import {DI} from "./examples/DI";
-import {sayHelloWorld} from "./examples/sayHelloWorld";
-import {SayHelloType} from "./examples/SayHelloType";
-import {MyService} from "./examples/MyService";
-import {MyServiceInterface} from "./examples/MyServiceInterface";
+import {MyServiceInterface, SayHelloType} from "./examples/types";
+import {HigherOrderFunctionWithDependencyObject} from "./examples/HigherOrderFunctions";
+import {sayHelloWorld} from "./examples/SimpleFunctions";
 
 describe('Module', () => {
 
@@ -37,7 +36,10 @@ describe('Module', () => {
                 module2.bind(DI.DEP2).toValue(42);
 
                 const module3 = createModule();
-                module3.bind(DI.MY_SERVICE).toHigherOrderFunction(MyService, {dep1: DI.DEP1, dep2: DI.DEP2});
+                module3.bind(DI.MY_SERVICE).toHigherOrderFunction(HigherOrderFunctionWithDependencyObject, {
+                    dep1: DI.DEP1,
+                    dep2: DI.DEP2
+                });
 
                 container.load(Symbol('module1'), module1);
                 container.load(Symbol('module2'), module2);
@@ -60,7 +62,10 @@ describe('Module', () => {
                 module2.bind(DI.DEP1).toValue('NEW dependency1');
 
                 const module3 = createModule();
-                module3.bind(DI.MY_SERVICE).toHigherOrderFunction(MyService, {dep1: DI.DEP1, dep2: DI.DEP2});
+                module3.bind(DI.MY_SERVICE).toHigherOrderFunction(HigherOrderFunctionWithDependencyObject, {
+                    dep1: DI.DEP1,
+                    dep2: DI.DEP2
+                });
 
                 container.bind(DI.DEP2).toValue(42);
                 container.load(Symbol('module1'), module1);

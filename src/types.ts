@@ -15,6 +15,11 @@ export interface Container {
             dependencies?: DependencyArray | DependencyObject,
             scope?: Scope
         ) => void;
+        toCurry: (
+            fn: CallableFunction,
+            dependencies?: DependencyArray | DependencyObject,
+            scope?: Scope
+        ) => void;
         toFactory: (factory: CallableFunction, scope?: Scope) => void;
         toClass: <C>(
             constructor: new (...args: any[]) => C,
@@ -37,6 +42,11 @@ export interface Module {
         toValue: (value: unknown) => void;
         toFunction: (fn: CallableFunction) => void;
         toHigherOrderFunction: (
+            fn: CallableFunction,
+            dependencies?: DependencyArray | DependencyObject,
+            scope?: Scope
+        ) => void;
+        toCurry: (
             fn: CallableFunction,
             dependencies?: DependencyArray | DependencyObject,
             scope?: Scope

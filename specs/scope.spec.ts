@@ -5,6 +5,10 @@ import {MyServiceInterface} from "./examples/MyServiceInterface";
 import {Mock, vi} from "vitest";
 import {MyServiceClass} from "./examples/MyServiceClass";
 import {MyServiceClassInterface} from "./examples/MyServiceClassInterface";
+import {
+    CurriedFunctionWithDependencies,
+    curriedFunctionWithDependencyObject
+} from "./examples/CurriedFunctionWithDependencyObject";
 
 describe('Scope', () => {
 
@@ -194,6 +198,44 @@ describe('Scope', () => {
 
                 // Act
                 const myService2 = container.get<MyServiceInterface>(DI.MY_SERVICE);
+
+                // Assert
+                expect(myService1).not.toBe(myService2);
+            });
+        });
+    });
+
+    describe('Curry', () => {
+
+        describe.each([
+            {scope: undefined},
+            {scope: 'singleton'},
+        ])('When the scope is default or defined to "singleton"', ({scope}) => {
+            it('should return the same instance', () => {
+                // Arrange
+                container.bind(DI.MY_SERVICE)
+                    .toCurry(curriedFunctionWithDependencyObject, {dep1: DI.DEP1, dep2: DI.DEP2}, scope as Scope);
+
+                const myService1 = container.get<CurriedFunctionWithDependencies>(DI.MY_SERVICE);
+
+                // Act
+                const myService2 = container.get<CurriedFunctionWithDependencies>(DI.MY_SERVICE);
+
+                // Assert
+                expect(myService1).toBe(myService2);
+            });
+        });
+
+        describe('When the scope is defined to "transient"', () => {
+            it('should return a new instance each time', () => {
+                // Arrange
+                container.bind(DI.MY_SERVICE)
+                    .toCurry(curriedFunctionWithDependencyObject, {dep1: DI.DEP1, dep2: DI.DEP2}, 'transient');
+
+                const myService1 = container.get<CurriedFunctionWithDependencies>(DI.MY_SERVICE);
+
+                // Act
+                const myService2 = container.get<CurriedFunctionWithDependencies>(DI.MY_SERVICE);
 
                 // Assert
                 expect(myService1).not.toBe(myService2);

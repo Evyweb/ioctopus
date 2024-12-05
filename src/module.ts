@@ -55,6 +55,8 @@ export function createModule(): Module {
             bindings.set(key, { factory, scope });
         };
 
+        const toCurry = toHigherOrderFunction;
+
         const toFactory = (factory: CallableFunction, scope: Scope = 'singleton') => {
             bindings.set(key, { factory: (resolve: ResolveFunction) => factory(resolve), scope });
         };
@@ -94,6 +96,7 @@ export function createModule(): Module {
             toFactory,
             toClass,
             toHigherOrderFunction,
+            toCurry
         };
     };
 

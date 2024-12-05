@@ -46,12 +46,14 @@ const container: Container = createContainer();
 
 ### Register the dependencies
 
-- You can register primitives
+#### Primitives
+You can register primitives
 ```typescript
 container.bind(DI.DEP1).toValue('dependency1');
 container.bind(DI.DEP2).toValue(42);
 ```
 
+#### Functions
 - You can register functions without dependencies
 ```typescript
 const sayHelloWorld = () => console.log('Hello World');
@@ -59,7 +61,33 @@ const sayHelloWorld = () => console.log('Hello World');
 container.bind(DI.SIMPLE_FUNCTION).toFunction(sayHelloWorld);
 ```
 
-- You can register functions with dependencies by using higher order functions
+#### Currying
+- You can register functions with dependencies using currying (1 level of currying)
+
+```typescript
+const myFunction = (dep1: string, dep2: number) => (name: string) => console.log(`${dep1} ${dep2} ${name}`);
+
+container.bind(DI.CURRIED_FUNCTION_WITH_DEPENDENCIES)
+    .toCurry(myFunction, [DI.DEP1, DI.DEP2]);
+```
+
+- You can also use a dependency object
+
+```typescript
+interface Dependencies {
+    dep1: string,
+    dep2: number
+}
+
+const myFunction = (dependencies: Dependencies) => (name: string) => console.log(`${dependencies.dep1} ${dependencies.dep2} ${name}`);
+
+// The dependencies will be listed in an object in the second parameter
+container.bind(DI.CURRIED_FUNCTION_WITH_DEPENDENCIES)
+    .toCurry(myFunction, {dep1: DI.DEP1, dep2: DI.DEP2});
+```
+
+#### Higher order functions
+You can also register functions with dependencies by using higher order functions
 ```typescript
 const MyServiceWithDependencies = (dep1: string, dep2: number): MyServiceWithDependenciesInterface => {
     return {
@@ -74,7 +102,7 @@ container.bind(DI.HIGHER_ORDER_FUNCTION_WITH_DEPENDENCIES)
     .toHigherOrderFunction(MyServiceWithDependencies, [DI.DEP1, DI.DEP2]);
 ```
 
-- But if you prefer, you can also use a dependency object
+But if you prefer, you can also use a dependency object
 
 ```typescript
 interface Dependencies {
@@ -95,7 +123,8 @@ container.bind(DI.HIGHER_ORDER_FUNCTION_WITH_DEPENDENCIES)
     .toHigherOrderFunction(MyService, {dep1: DI.DEP1, dep2: DI.DEP2});
 ```
 
-- For more complex cases, you can register factories.
+#### Factories
+For more complex cases, you can register factories.
     
 ```typescript
 container.bind(DI.MY_USE_CASE).toFactory(() => {
@@ -108,7 +137,8 @@ container.bind(DI.MY_USE_CASE).toFactory(() => {
 });
 ```
 
-- You can register classes, the dependencies of the class will be resolved and injected in the constructor
+#### Classes
+You can register classes, the dependencies of the class will be resolved and injected in the constructor
 
 ```typescript
 class MyServiceClass implements MyServiceClassInterface {
@@ -125,7 +155,7 @@ class MyServiceClass implements MyServiceClassInterface {
 container.bind(DI.CLASS_WITH_DEPENDENCIES).toClass(MyServiceClass, [DI.DEP1, DI.DEP2]);
 ```
 
-- But if you prefer, you can also use a dependency object
+But if you prefer, you can also use a dependency object:
 ```typescript
 
 interface Dependencies {
@@ -144,7 +174,7 @@ class MyServiceClass implements MyServiceClassInterface {
 container.bind(DI.CLASS_WITH_DEPENDENCIES).toClass(MyServiceClass, {dep1: DI.DEP1, dep2: DI.DEP2});
 ```
 
-- You can register classes without dependencies
+- You can register classes without dependencies:
 ```typescript
 class MyServiceClassWithoutDependencies implements MyServiceClassInterface {
     runTask(): string {
@@ -157,16 +187,27 @@ container.bind(DI.CLASS_WITHOUT_DEPENDENCIES).toClass(MyServiceClassWithoutDepen
 
 ### Resolve the dependencies
 
+You can now resolve the dependencies using the get method of the container.
+
 ```typescript
 import { DI } from './di';
 
-// Call the container to resolve the dependencies
+// Primitive
+const dep1 = container.get<string>(DI.DEP1); // 'dependency1'
+const dep2 = container.get<number>(DI.DEP2); // 42
+
+// Higher order function and class
 const myUseCase = container.get<MyUseCaseInterface>(DI.MY_USE_CASE);
-
 myUseCase.execute();
-```
+    
+// Simple function
+const simpleFunction = container.get<SimpleFunctionType>(DI.SIMPLE_FUNCTION);
+simpleFunction('Hello World');
 
-Code used in the examples can be found in the specs folder.
+// Curried function
+const callMe = container.get<CurriedFunction>(DI.CURRIED_FUNCTION_WITH_DEPENDENCIES);
+callMe('John Doe');
+```
 
 ### Modules
 

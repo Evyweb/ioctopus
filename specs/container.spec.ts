@@ -15,6 +15,15 @@ import {ServiceWithoutDependencyInterface} from "./examples/ServiceWithoutDepend
 import {MyServiceClassWithoutDependencies} from "./examples/MyServiceClassWithoutDependencies";
 import {mock, MockProxy} from "vitest-mock-extended";
 import {MyServiceClassWithDependencyObject} from "./examples/MyServiceClassWithDependencyObject";
+import {
+    curriedFunctionWithoutDependencies,
+    CurriedFunctionWithoutDependencies
+} from "./examples/CurriedFunctionWithoutDependencies";
+import {
+    CurriedFunctionWithDependencies,
+    curriedFunctionWithDependencies
+} from "./examples/CurriedFunctionWithDependencies";
+import {curriedFunctionWithDependencyObject} from "./examples/CurriedFunctionWithDependencyObject";
 
 describe('Container', () => {
 
@@ -36,66 +45,134 @@ describe('Container', () => {
             expect(sayHello()).toBe('hello world');
         });
 
-        describe('When the function is a higher order function with dependencies', () => {
-            beforeEach(() => {
-                container.bind(DI.DEP1).toValue('dependency1');
-                container.bind(DI.DEP2).toValue(42);
-            });
+        describe('When the function is a higher order function', () => {
+            describe('When the higher order function has dependencies', () => {
+                beforeEach(() => {
+                    container.bind(DI.DEP1).toValue('dependency1');
+                    container.bind(DI.DEP2).toValue(42);
+                });
 
-            describe('When the dependencies are defined in an array', () => {
-                it('should return the function with all its dependencies resolved', () => {
-                    // Arrange
-                    container.bind(DI.HIGHER_ORDER_FUNCTION_WITH_DEPENDENCIES)
-                        .toHigherOrderFunction(FunctionWithDependencies, [DI.DEP1, DI.DEP2]);
+                describe('When the dependencies are defined in an array', () => {
+                    it('should return the function with all its dependencies resolved', () => {
+                        // Arrange
+                        container.bind(DI.HIGHER_ORDER_FUNCTION_WITH_DEPENDENCIES)
+                            .toHigherOrderFunction(FunctionWithDependencies, [DI.DEP1, DI.DEP2]);
 
-                    // Act
-                    const myService = container.get<MyServiceInterface>(DI.HIGHER_ORDER_FUNCTION_WITH_DEPENDENCIES);
+                        // Act
+                        const myService = container.get<MyServiceInterface>(DI.HIGHER_ORDER_FUNCTION_WITH_DEPENDENCIES);
 
-                    // Assert
-                    expect(myService.runTask()).toBe('Executing with dep1: dependency1 and dep2: 42');
+                        // Assert
+                        expect(myService.runTask()).toBe('Executing with dep1: dependency1 and dep2: 42');
+                    });
+                });
+
+                describe('When the dependencies are defined in an object', () => {
+                    it('should return the function with all its dependencies resolved', () => {
+                        // Arrange
+                        container.bind(DI.MY_SERVICE)
+                            .toHigherOrderFunction(MyService, {dep1: DI.DEP1, dep2: DI.DEP2});
+
+                        // Act
+                        const myService = container.get<MyServiceInterface>(DI.MY_SERVICE);
+
+                        // Assert
+                        expect(myService.runTask()).toBe('Executing with dep1: dependency1 and dep2: 42');
+                    });
+                });
+
+                describe('When the dependencies are defined in an other format', () => {
+                    it('should throw an error', () => {
+                        // Act & Assert
+                        expect(() => container.bind(DI.HIGHER_ORDER_FUNCTION_WITH_DEPENDENCIES)
+                            .toHigherOrderFunction(FunctionWithDependencies, 'invalid' as any))
+                            .toThrowError('Invalid dependencies type');
+                    });
                 });
             });
 
-            describe('When the dependencies are defined in an object', () => {
-                it('should return the function with all its dependencies resolved', () => {
+            describe.each([
+                {dependencies: undefined},
+                {dependencies: []},
+                {dependencies: {}},
+            ])('When the higher order function has no dependencies', ({dependencies}) => {
+                it('should just return the function', () => {
                     // Arrange
-                    container.bind(DI.MY_SERVICE)
-                        .toHigherOrderFunction(MyService, {dep1: DI.DEP1, dep2: DI.DEP2});
+                    container.bind(DI.DEP1).toValue('dependency1');
+                    container.bind(DI.HIGHER_ORDER_FUNCTION_WITHOUT_DEPENDENCIES)
+                        .toHigherOrderFunction(HigherOrderFunctionWithoutDependencies, dependencies);
 
                     // Act
-                    const myService = container.get<MyServiceInterface>(DI.MY_SERVICE);
+                    const myService = container.get<ServiceWithoutDependencyInterface>(DI.HIGHER_ORDER_FUNCTION_WITHOUT_DEPENDENCIES);
 
                     // Assert
-                    expect(myService.runTask()).toBe('Executing with dep1: dependency1 and dep2: 42');
-                });
-            });
-
-            describe('When the dependencies are defined in an other format', () => {
-                it('should throw an error', () => {
-                    // Act & Assert
-                    expect(() => container.bind(DI.HIGHER_ORDER_FUNCTION_WITH_DEPENDENCIES)
-                        .toHigherOrderFunction(FunctionWithDependencies, 'invalid' as any))
-                        .toThrowError('Invalid dependencies type');
+                    expect(myService.run()).toBe('OtherService');
                 });
             });
         });
 
-        describe.each([
-            {dependencies: undefined},
-            {dependencies: []},
-            {dependencies: {}},
-        ])('When the function is a higher order function without dependencies', ({dependencies}) => {
-            it('should just return the function', () => {
-                // Arrange
-                container.bind(DI.DEP1).toValue('dependency1');
-                container.bind(DI.HIGHER_ORDER_FUNCTION_WITHOUT_DEPENDENCIES)
-                    .toHigherOrderFunction(HigherOrderFunctionWithoutDependencies, dependencies);
+        describe('When the function is a curried function', () => {
 
-                // Act
-                const myService = container.get<ServiceWithoutDependencyInterface>(DI.HIGHER_ORDER_FUNCTION_WITHOUT_DEPENDENCIES);
+            describe('When the function has dependencies', () => {
+                beforeEach(() => {
+                    container.bind(DI.DEP1).toValue('dependency1');
+                    container.bind(DI.DEP2).toValue(42);
+                });
 
-                // Assert
-                expect(myService.run()).toBe('OtherService');
+                describe('When the dependencies are defined in an array', () => {
+                    it('should return the function with all its dependencies resolved', () => {
+                        // Arrange
+                        container.bind(DI.CURRIED_FUNCTION_WITH_DEPENDENCIES)
+                            .toCurry(curriedFunctionWithDependencies, [DI.DEP1]);
+
+                        // Act
+                        const myService = container.get<CurriedFunctionWithDependencies>(DI.CURRIED_FUNCTION_WITH_DEPENDENCIES);
+
+                        // Assert
+                        expect(myService('curry')).toBe('Hello curry with dependency1');
+                    });
+                });
+
+                describe('When the dependencies are defined in an object', () => {
+                    it('should return the function with all its dependencies resolved', () => {
+                        // Arrange
+                        container.bind(DI.CURRIED_FUNCTION_WITH_DEPENDENCIES_OBJECT)
+                            .toCurry(curriedFunctionWithDependencyObject, {dep1: DI.DEP1, dep2: DI.DEP2});
+
+                        // Act
+                        const myService = container.get<CurriedFunctionWithDependencies>(DI.CURRIED_FUNCTION_WITH_DEPENDENCIES_OBJECT);
+
+                        // Assert
+                        expect(myService('curry')).toBe('Hello curry with dependency1 and 42');
+                    });
+                });
+
+                describe('When the dependencies are defined in an other format', () => {
+                    it('should throw an error', () => {
+                        // Act & Assert
+                        expect(() => container.bind(DI.CURRIED_FUNCTION_WITH_DEPENDENCIES)
+                            .toCurry(curriedFunctionWithoutDependencies, 'invalid' as any))
+                            .toThrowError('Invalid dependencies type');
+                    });
+                });
+            });
+
+            describe.each([
+                {dependencies: undefined},
+                {dependencies: []},
+                {dependencies: {}},
+            ])('When the curried function has no dependencies', ({dependencies}) => {
+                it('should just return the function', () => {
+                    // Arrange
+                    container.bind(DI.DEP1).toValue('dependency1');
+                    container.bind(DI.CURRIED_FUNCTION_WITHOUT_DEPENDENCIES)
+                        .toCurry(curriedFunctionWithoutDependencies, dependencies);
+
+                    // Act
+                    const myService = container.get<CurriedFunctionWithoutDependencies>(DI.CURRIED_FUNCTION_WITHOUT_DEPENDENCIES);
+
+                    // Assert
+                    expect(myService()).toBe('OtherService');
+                });
             });
         });
 

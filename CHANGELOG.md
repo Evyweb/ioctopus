@@ -1,5 +1,15 @@
 # @evyweb/ioctopus
 
+## 1.2.0
+
+### Minor Changes
+
+- Add strings as key for dependency binding
+- Add strings as key for module binding
+
+### Patch Changes
+- Update dev dependencies
+
 ## 1.1.0
 
 ### Minor Changes

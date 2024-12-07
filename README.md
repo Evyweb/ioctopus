@@ -10,17 +10,30 @@
 
 ## Introduction
 An IOC (Inversion of Control) container for Typescript. 
+
 The idea behind is to create a simple container that can be used to register and resolve dependencies working with classes & functions but without reflect metadata.
+
 It is using simple Typescript code, so it can be used in any project without any dependency.
-Works in NextJS middleware and edge runtime.
+
+Works also in NextJS middleware and node+edge runtimes.
 
 ## Installation
 ```npm i @evyweb/ioctopus```
 
 ## How to use
 
-### List your injection tokens
-Create a symbol for each dependency you want to register. It will be used to identify the dependency.
+To use the container, you need to create a container and bind your dependencies.
+To do so you need to create an id for each dependency you want to register.
+
+This id that we call an "injection token" can be a string or a symbol.
+(Please note that you have to be consistent and use always strings for binding and resolving dependencies or always symbols, you can't mix them).
+
+Then you can bind the dependency to a value, a function, a class, a factory, a higher order function, or a curried function.
+
+### Using symbols as injection tokens
+(You can skip "step a" if you prefer to use strings as injection tokens).
+
+a) Create a symbol for each dependency you want to register. It will be used to identify the dependency.
 
 ```typescript
 export const DI: InjectionTokens = {
@@ -36,7 +49,8 @@ export const DI: InjectionTokens = {
     HIGHER_ORDER_FUNCTION_WITHOUT_DEPENDENCIES: Symbol('HIGHER_ORDER_FUNCTION_WITHOUT_DEPENDENCIES')
 } ;
 ```
-Then create your container.
+
+b) Then create your container.
 
 ```typescript
 import { DI } from './di';
@@ -51,6 +65,10 @@ You can register primitives
 ```typescript
 container.bind(DI.DEP1).toValue('dependency1');
 container.bind(DI.DEP2).toValue(42);
+
+// or using strings
+container.bind('DEP1').toValue('dependency1');
+container.bind('DEP2').toValue(42);
 ```
 
 #### Functions
@@ -59,6 +77,9 @@ container.bind(DI.DEP2).toValue(42);
 const sayHelloWorld = () => console.log('Hello World');
 
 container.bind(DI.SIMPLE_FUNCTION).toFunction(sayHelloWorld);
+
+// or using strings
+container.bind('SIMPLE_FUNCTION').toFunction(sayHelloWorld);
 ```
 
 #### Currying
@@ -69,6 +90,10 @@ const myFunction = (dep1: string, dep2: number) => (name: string) => console.log
 
 container.bind(DI.CURRIED_FUNCTION_WITH_DEPENDENCIES)
     .toCurry(myFunction, [DI.DEP1, DI.DEP2]);
+
+// or using strings
+container.bind('CURRIED_FUNCTION_WITH_DEPENDENCIES')
+    .toCurry(myFunction, ['DEP1', 'DEP2']);
 ```
 
 - You can also use a dependency object
@@ -84,6 +109,10 @@ const myFunction = (dependencies: Dependencies) => (name: string) => console.log
 // The dependencies will be listed in an object in the second parameter
 container.bind(DI.CURRIED_FUNCTION_WITH_DEPENDENCIES)
     .toCurry(myFunction, {dep1: DI.DEP1, dep2: DI.DEP2});
+
+// or using strings
+container.bind('CURRIED_FUNCTION_WITH_DEPENDENCIES')
+    .toCurry(myFunction, {dep1: 'DEP1', dep2: 'DEP2'});
 ```
 
 #### Higher order functions
@@ -100,6 +129,10 @@ const MyServiceWithDependencies = (dep1: string, dep2: number): MyServiceWithDep
 // The dependencies will be listed in an array in the second parameter
 container.bind(DI.HIGHER_ORDER_FUNCTION_WITH_DEPENDENCIES)
     .toHigherOrderFunction(MyServiceWithDependencies, [DI.DEP1, DI.DEP2]);
+
+// or using strings
+container.bind('HIGHER_ORDER_FUNCTION_WITH_DEPENDENCIES')
+    .toHigherOrderFunction(MyServiceWithDependencies, ['DEP1', 'DEP2']);
 ```
 
 But if you prefer, you can also use a dependency object
@@ -121,6 +154,10 @@ const MyService = (dependencies: Dependencies): MyServiceInterface => {
 // The dependencies will be listed in an object in the second parameter
 container.bind(DI.HIGHER_ORDER_FUNCTION_WITH_DEPENDENCIES)
     .toHigherOrderFunction(MyService, {dep1: DI.DEP1, dep2: DI.DEP2});
+
+// or using strings
+container.bind('HIGHER_ORDER_FUNCTION_WITH_DEPENDENCIES')
+    .toHigherOrderFunction(MyService, {dep1: 'DEP1', dep2: 'DEP2'});
 ```
 
 #### Factories
@@ -133,6 +170,16 @@ container.bind(DI.MY_USE_CASE).toFactory(() => {
     // Then return the instance
     return MyUseCase({
         myService: container.get<MyService>(DI.MY_SERVICE)
+    });
+});
+
+// or using strings
+container.bind('MY_USE_CASE').toFactory(() => {
+    // Do something before creating the instance
+     
+    // Then return the instance
+    return MyUseCase({
+        myService: container.get<MyService>('MY_SERVICE')
     });
 });
 ```
@@ -153,6 +200,9 @@ class MyServiceClass implements MyServiceClassInterface {
 }
 
 container.bind(DI.CLASS_WITH_DEPENDENCIES).toClass(MyServiceClass, [DI.DEP1, DI.DEP2]);
+
+// or using strings
+container.bind('CLASS_WITH_DEPENDENCIES').toClass(MyServiceClass, ['DEP1', 'DEP2']);
 ```
 
 But if you prefer, you can also use a dependency object:
@@ -172,6 +222,9 @@ class MyServiceClass implements MyServiceClassInterface {
 }
 
 container.bind(DI.CLASS_WITH_DEPENDENCIES).toClass(MyServiceClass, {dep1: DI.DEP1, dep2: DI.DEP2});
+
+// or using strings
+container.bind('CLASS_WITH_DEPENDENCIES').toClass(MyServiceClass, {dep1: 'DEP1', dep2: 'DEP2'});
 ```
 
 - You can register classes without dependencies:
@@ -183,6 +236,9 @@ class MyServiceClassWithoutDependencies implements MyServiceClassInterface {
 }
 
 container.bind(DI.CLASS_WITHOUT_DEPENDENCIES).toClass(MyServiceClassWithoutDependencies);
+    
+// or using strings
+container.bind('CLASS_WITHOUT_DEPENDENCIES').toClass(MyServiceClassWithoutDependencies);
 ```
 
 ### Resolve the dependencies
@@ -195,17 +251,26 @@ import { DI } from './di';
 // Primitive
 const dep1 = container.get<string>(DI.DEP1); // 'dependency1'
 const dep2 = container.get<number>(DI.DEP2); // 42
+// or using strings
+const dep1 = container.get<string>('DEP1'); // 'dependency1'
+const dep2 = container.get<number>('DEP2'); // 42
 
 // Higher order function and class
 const myUseCase = container.get<MyUseCaseInterface>(DI.MY_USE_CASE);
+// or using strings
+const myUseCase = container.get<MyUseCaseInterface>('MY_USE_CASE');
 myUseCase.execute();
     
 // Simple function
 const simpleFunction = container.get<SimpleFunctionType>(DI.SIMPLE_FUNCTION);
+// or using strings
+const simpleFunction = container.get<SimpleFunctionType>('SIMPLE_FUNCTION');
 simpleFunction('Hello World');
 
 // Curried function
 const callMe = container.get<CurriedFunction>(DI.CURRIED_FUNCTION_WITH_DEPENDENCIES);
+// or using strings
+const callMe = container.get<CurriedFunction>('CURRIED_FUNCTION_WITH_DEPENDENCIES');
 callMe('John Doe');
 ```
 
@@ -236,7 +301,7 @@ container.load(Symbol('module3'), module3);
 const myService = container.get<MyServiceInterface>(DI.MY_SERVICE);
 ```
 The dependencies do not need to be registered in the same module as the one that is using them.
-Note that the module name used as a key is a symbol.
+Note that the module name used as a key can be a symbol or a string.
 
 #### Modules override
 

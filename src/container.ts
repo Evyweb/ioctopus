@@ -1,18 +1,18 @@
-import {Binding, Container, Module} from './types';
+import {Binding, Container, DependencyKey, Module} from './types';
 import {createModule} from './module';
 
 export function createContainer(): Container {
     const modules = new Map<symbol, Module>();
-    const singletonInstances = new Map<symbol, unknown>();
-    const scopedInstances = new Map<symbol, Map<symbol, unknown>>();
-    const resolutionStack: symbol[] = [];
+    const singletonInstances = new Map<DependencyKey, unknown>();
+    const scopedInstances = new Map<DependencyKey, Map<DependencyKey, unknown>>();
+    const resolutionStack: DependencyKey[] = [];
     let currentScopeId: symbol | undefined;
 
     const DEFAULT_MODULE_KEY = Symbol('DEFAULT');
     const defaultModule = createModule();
     modules.set(DEFAULT_MODULE_KEY, defaultModule);
 
-    const bind = (key: symbol) => defaultModule.bind(key);
+    const bind = (key: DependencyKey) => defaultModule.bind(key);
 
     const load = (moduleKey: symbol, module: Module) => modules.set(moduleKey, module);
 
@@ -21,7 +21,7 @@ export function createContainer(): Container {
         modules.delete(moduleKey);
     };
 
-    const findLastBinding = (key: symbol): Binding | null => {
+    const findLastBinding = (key: DependencyKey): Binding | null => {
         const modulesArray = Array.from(modules.values());
         for (let i = modulesArray.length - 1; i >= 0; i--) {
             const module = modulesArray[i];
@@ -33,17 +33,28 @@ export function createContainer(): Container {
         return null;
     };
 
-    const get = <T>(key: symbol): T => {
+    const getLastBinding = (key: DependencyKey): Binding => {
+        const binding = findLastBinding(key);
+        if (!binding) {
+            throw new Error(`No binding found for key: ${key.toString()}`);
+        }
+        return binding;
+    };
+
+    const verifyCircularDependencies = (key: DependencyKey) => {
         if (resolutionStack.includes(key)) {
             const cycle = [...resolutionStack, key].map((k) => k.toString()).join(' -> ');
             throw new Error(`Circular dependency detected: ${cycle}`);
         }
+    };
+
+    const get = <T>(key: DependencyKey): T => {
+        verifyCircularDependencies(key);
 
         resolutionStack.push(key);
 
         try {
-            const binding = findLastBinding(key);
-            if (!binding) throw new Error(`No binding found for key: ${key.toString()}`);
+            const binding = getLastBinding(key);
 
             const {factory, scope} = binding;
 
@@ -63,7 +74,7 @@ export function createContainer(): Container {
                     throw new Error(`Cannot resolve scoped binding outside of a scope: ${key.toString()}`);
 
                 if (!scopedInstances.has(currentScopeId)) {
-                    scopedInstances.set(currentScopeId, new Map<symbol, unknown>());
+                    scopedInstances.set(currentScopeId, new Map<DependencyKey, unknown>());
                 }
                 const scopeMap = scopedInstances.get(currentScopeId)!;
                 if (!scopeMap.has(key)) {
@@ -79,7 +90,7 @@ export function createContainer(): Container {
         }
     };
 
-    const resolveDependency = (depKey: symbol): unknown => {
+    const resolveDependency = (depKey: DependencyKey): unknown => {
         return get(depKey);
     };
 

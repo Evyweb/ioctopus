@@ -38,16 +38,19 @@ describe('Container', () => {
         container = createContainer();
     });
 
-    describe('toValue()', () => {
-        it('should return the associated value', () => {
+    describe.each([
+        [{ key: DI.DEP1, value: 'dependency1' }],
+        [{ key: 'DEP1', value: 'dependency1' }],
+    ])('toValue()', ({key, value}) => {
+        it(`should return the associated value of key: ${key.toString()}`, () => {
             // Arrange
-            container.bind(DI.DEP1).toValue('dependency1');
+            container.bind(key).toValue(value);
 
             // Act
-            const value = container.get<string>(DI.DEP1);
+            const result = container.get<string>(key);
 
             // Assert
-            expect(value).toBe('dependency1');
+            expect(result).toBe(value);
         });
     });
 

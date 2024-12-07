@@ -1,4 +1,4 @@
-import {DependencyArray, DependencyObject, Module, ResolveFunction, Scope} from "./types";
+import {DependencyArray, DependencyKey, DependencyObject, Module, ResolveFunction, Scope} from "./types";
 
 interface Binding {
     factory: (resolve: ResolveFunction) => unknown;
@@ -6,7 +6,7 @@ interface Binding {
 }
 
 export function createModule(): Module {
-    const bindings = new Map<symbol, Binding>();
+    const bindings = new Map<DependencyKey, Binding>();
 
     const resolveDependenciesArray = (dependencies: DependencyArray, resolve: ResolveFunction) =>
         dependencies.map(resolve);
@@ -22,7 +22,7 @@ export function createModule(): Module {
     const isDependencyObject = (dependencies: DependencyArray | DependencyObject): dependencies is DependencyObject =>
         dependencies !== null && typeof dependencies === "object" && !Array.isArray(dependencies);
 
-    const bind = (key: symbol) => {
+    const bind = (key: DependencyKey) => {
         const toValue = (value: unknown) => {
             bindings.set(key, {factory: () => value, scope: 'singleton'});
         };

@@ -1,13 +1,15 @@
+export type DependencyKey = symbol | string;
+
 export interface DependencyObject {
-    [key: string]: symbol;
+    [key: string]: DependencyKey;
 }
 
-export type DependencyArray = symbol[];
+export type DependencyArray = DependencyKey[];
 
 export type Scope = 'singleton' | 'transient' | 'scoped';
 
 export interface Container {
-    bind(key: symbol): {
+    bind(key: DependencyKey): {
         toValue: (value: unknown) => void;
         toFunction: (fn: CallableFunction) => void;
         toHigherOrderFunction: (
@@ -30,7 +32,7 @@ export interface Container {
 
     load(moduleKey: symbol, module: Module): void;
 
-    get<T>(key: symbol): T;
+    get<T>(key: DependencyKey): T;
 
     unload(key: symbol): void;
 
@@ -38,7 +40,7 @@ export interface Container {
 }
 
 export interface Module {
-    bind(key: symbol): {
+    bind(key: DependencyKey): {
         toValue: (value: unknown) => void;
         toFunction: (fn: CallableFunction) => void;
         toHigherOrderFunction: (
@@ -59,16 +61,16 @@ export interface Module {
         ) => void;
     };
 
-    bindings: Map<symbol, Binding>;
+    bindings: Map<DependencyKey, Binding>;
 }
 
 export interface InjectionTokens {
-    [key: string]: symbol;
+    [key: string]: DependencyKey;
 }
 
-export type ResolveFunction = (dep: symbol) => unknown;
+export type ResolveFunction = (dep: DependencyKey) => unknown;
 
 export interface Binding {
-    factory: (resolve: (key: symbol) => unknown) => unknown;
+    factory: (resolve: (key: DependencyKey) => unknown) => unknown;
     scope: Scope;
 }

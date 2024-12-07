@@ -16,11 +16,11 @@ describe('Module', () => {
         it('should return all module dependencies', () => {
             // Arrange
             const myModule = createModule();
-            myModule.bind(DI.SIMPLE_FUNCTION).toFunction(sayHelloWorld);
+            myModule.bind('SIMPLE_FUNCTION').toFunction(sayHelloWorld);
             container.load(Symbol('myModule'), myModule);
 
             // Act
-            const sayHello = container.get<SayHelloType>(DI.SIMPLE_FUNCTION);
+            const sayHello = container.get<SayHelloType>('SIMPLE_FUNCTION');
 
             // Assert
             expect(sayHello()).toBe('hello world');

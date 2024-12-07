@@ -13,17 +13,20 @@ describe('Module', () => {
     });
 
     describe('When a module is loaded', () => {
-        it('should return all module dependencies', () => {
-            // Arrange
-            const myModule = createModule();
-            myModule.bind('SIMPLE_FUNCTION').toFunction(sayHelloWorld);
-            container.load(Symbol('myModule'), myModule);
+        describe.each([Symbol('myModule'), 'myModule'])
+        ('When the module has dependencies', (moduleKey) => {
+            it(`should return all dependencies of module with key: ${moduleKey.toString()}`, () => {
+                // Arrange
+                const myModule = createModule();
+                myModule.bind('SIMPLE_FUNCTION').toFunction(sayHelloWorld);
+                container.load(moduleKey, myModule);
 
-            // Act
-            const sayHello = container.get<SayHelloType>('SIMPLE_FUNCTION');
+                // Act
+                const sayHello = container.get<SayHelloType>('SIMPLE_FUNCTION');
 
-            // Assert
-            expect(sayHello()).toBe('hello world');
+                // Assert
+                expect(sayHello()).toBe('hello world');
+            });
         });
 
         describe('When a dependency of the module is registered in another module', () => {

@@ -1,5 +1,7 @@
 export type DependencyKey = symbol | string;
 
+export type ModuleKey = symbol | string;
+
 export interface DependencyObject {
     [key: string]: DependencyKey;
 }
@@ -30,11 +32,11 @@ export interface Container {
         ) => void;
     };
 
-    load(moduleKey: symbol, module: Module): void;
+    load(moduleKey: ModuleKey, module: Module): void;
 
     get<T>(key: DependencyKey): T;
 
-    unload(key: symbol): void;
+    unload(key: ModuleKey): void;
 
     runInScope<T>(callback: () => T): T;
 }

@@ -1,8 +1,8 @@
-import {Binding, Container, DependencyKey, Module} from './types';
+import {Binding, Container, DependencyKey, Module, ModuleKey} from './types';
 import {createModule} from './module';
 
 export function createContainer(): Container {
-    const modules = new Map<symbol, Module>();
+    const modules = new Map<ModuleKey, Module>();
     const singletonInstances = new Map<DependencyKey, unknown>();
     const scopedInstances = new Map<DependencyKey, Map<DependencyKey, unknown>>();
     const resolutionStack: DependencyKey[] = [];
@@ -16,7 +16,7 @@ export function createContainer(): Container {
 
     const load = (moduleKey: symbol, module: Module) => modules.set(moduleKey, module);
 
-    const unload = (moduleKey: symbol) => {
+    const unload = (moduleKey: ModuleKey) => {
         singletonInstances.clear();
         modules.delete(moduleKey);
     };

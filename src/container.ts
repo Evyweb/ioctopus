@@ -41,28 +41,32 @@ export function createContainer(): Container {
         return binding;
     };
 
-    const verifyCircularDependencies = (key: DependencyKey) => {
-        if (resolutionStack.includes(key)) {
-            const cycle = [...resolutionStack, key].map((k) => k.toString()).join(' -> ');
+    const isCircularDependency = (key: DependencyKey): boolean => resolutionStack.includes(key);
+
+    const buildCycleOf = (key: DependencyKey) => [...resolutionStack, key].map((k) => k.toString()).join(' -> ');
+
+    const startCircularDependencyDetectionFor = (dependencyKey: DependencyKey) => resolutionStack.push(dependencyKey);
+
+    const endCircularDependencyDetection = () => resolutionStack.pop();
+
+    const get = <T>(dependencyKey: DependencyKey): T => {
+        if (isCircularDependency(dependencyKey)) {
+            const cycle = buildCycleOf(dependencyKey);
             throw new Error(`Circular dependency detected: ${cycle}`);
         }
-    };
 
-    const get = <T>(key: DependencyKey): T => {
-        verifyCircularDependencies(key);
-
-        resolutionStack.push(key);
+        startCircularDependencyDetectionFor(dependencyKey);
 
         try {
-            const binding = getLastBinding(key);
+            const binding = getLastBinding(dependencyKey);
 
             const {factory, scope} = binding;
 
             if (scope === 'singleton') {
-                if (!singletonInstances.has(key)) {
-                    singletonInstances.set(key, factory(resolveDependency));
+                if (!singletonInstances.has(dependencyKey)) {
+                    singletonInstances.set(dependencyKey, factory(resolveDependency));
                 }
-                return singletonInstances.get(key) as T;
+                return singletonInstances.get(dependencyKey) as T;
             }
 
             if (scope === 'transient') {
@@ -70,23 +74,24 @@ export function createContainer(): Container {
             }
 
             if (scope === 'scoped') {
-                if (!currentScopeId)
-                    throw new Error(`Cannot resolve scoped binding outside of a scope: ${key.toString()}`);
+                if (!currentScopeId) {
+                    throw new Error(`Cannot resolve scoped binding outside of a scope: ${dependencyKey.toString()}`);
+                }
 
                 if (!scopedInstances.has(currentScopeId)) {
                     scopedInstances.set(currentScopeId, new Map<DependencyKey, unknown>());
                 }
                 const scopeMap = scopedInstances.get(currentScopeId)!;
-                if (!scopeMap.has(key)) {
-                    scopeMap.set(key, factory(resolveDependency));
+                if (!scopeMap.has(dependencyKey)) {
+                    scopeMap.set(dependencyKey, factory(resolveDependency));
                 }
 
-                return scopeMap.get(key) as T;
+                return scopeMap.get(dependencyKey) as T;
             }
 
             throw new Error(`Unknown scope: ${scope}`);
         } finally {
-            resolutionStack.pop();
+            endCircularDependencyDetection();
         }
     };
 

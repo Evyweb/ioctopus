@@ -57,3 +57,14 @@ export interface Binding {
     factory: (resolve: (key: DependencyKey) => unknown) => unknown;
     scope: Scope;
 }
+
+export type FindKeyByValue<T extends Record<string, unknown>, V> = {
+    [K in keyof T]: T[K] extends V ? K : never;
+}[keyof T];
+
+export type ToKeysTuple<
+    Map extends Record<string, unknown>,
+    T extends any[]
+> = {
+    [K in keyof T]: FindKeyByValue<Map, T[K]>;
+};

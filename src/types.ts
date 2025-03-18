@@ -15,8 +15,8 @@ export type DependencyArrayType<DependenciesTuple extends any[], Services extend
 export type Scope = 'singleton' | 'transient' | 'scoped';
 
 interface Bindable<Services extends Record<string, unknown> = {}> {
-    bind(key: DependencyKeyType<Services>): {
-        toValue: (value: unknown) => void;
+    bind<Key extends DependencyKeyType<Services>>(key: Key): {
+        toValue: (value: Services[Key]) => void;
         toFunction: (fn: CallableFunction) => void;
         toHigherOrderFunction: <Fn extends AnyFunction>(
             fn: Fn,
@@ -74,3 +74,4 @@ export type ToKeysTuple<
 };
 
 export type ExtractServiceRegistryType<T> = T extends ServiceRegistry<infer Services> ? Services : never;
+export type ExtractServiceRegistryKeys<T> = keyof ExtractServiceRegistryType<T>;

@@ -1,8 +1,8 @@
 import { ServiceRegistry} from "../../src";
 
 export const serviceRegistry = new ServiceRegistry()
-    .define('DEP1').mapTo()
-    .define('DEP2').mapTo()
+    .define('DEP1').mapTo<string>()
+    .define('DEP2').mapTo<number>()
     .define('LOGGER').mapTo()
     .define('MY_SERVICE').mapTo()
     .define('MY_USE_CASE').mapTo()

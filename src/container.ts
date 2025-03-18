@@ -13,11 +13,11 @@ export function createContainer<Services extends Record<string, unknown> = {}>(
 
     const DEFAULT_MODULE_KEY = Symbol('DEFAULT');
     const defaultModule = createModule(serviceRegistry);
-    modules.set(DEFAULT_MODULE_KEY, defaultModule);
+    modules.set(DEFAULT_MODULE_KEY, defaultModule as unknown as Module);
 
     const bind = (key: DependencyKeyType<Services>) => defaultModule.bind(key);
 
-    const load = (moduleKey: symbol, module: Module) => modules.set(moduleKey, module);
+    const load = (moduleKey: symbol, module: Module<Services>) => modules.set(moduleKey, module as unknown as Module);
 
     const unload = (moduleKey: ModuleKey) => {
         singletonInstances.clear();

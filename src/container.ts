@@ -52,7 +52,8 @@ export function createContainer<Services extends Record<string, unknown> = {}>(
 
     const endCircularDependencyDetection = () => resolutionStack.pop();
 
-    const get = <T>(dependencyKey: DependencyKey): T => {
+    const get = <T>(dependency: DependencyKeyType<Services>): T => {
+        const dependencyKey = serviceRegistry.get(dependency);
         if (isCircularDependency(dependencyKey)) {
             const cycle = buildCycleOf(dependencyKey);
             throw new Error(`Circular dependency detected: ${cycle}`);
@@ -99,7 +100,7 @@ export function createContainer<Services extends Record<string, unknown> = {}>(
     };
 
     const resolveDependency = (depKey: DependencyKey): unknown => {
-        return get(depKey);
+        return get(depKey as DependencyKeyType<Services>);
     };
 
     const runInScope = <T>(callback: () => T): T => {

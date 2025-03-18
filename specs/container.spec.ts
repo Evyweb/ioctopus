@@ -49,7 +49,7 @@ describe('Container', () => {
             container.bind(key as ExtractServiceRegistryKeys<typeof serviceRegistry>).toValue(value);
 
             // Act
-            const result = container.get<string>(serviceRegistry.get(key as ExtractServiceRegistryKeys<typeof serviceRegistry>));
+            const result = container.get(key as ExtractServiceRegistryKeys<typeof serviceRegistry>);
 
             // Assert
             expect(result).toBe(value);
@@ -62,7 +62,7 @@ describe('Container', () => {
             container.bind('SIMPLE_FUNCTION').toFunction(sayHelloWorld);
 
             // Act
-            const sayHello = container.get<SayHelloType>(serviceRegistry.get('SIMPLE_FUNCTION'));
+            const sayHello = container.get('SIMPLE_FUNCTION');
 
             // Assert
             expect(sayHello()).toBe('hello world');
@@ -83,7 +83,7 @@ describe('Container', () => {
                         .toHigherOrderFunction(HigherOrderFunctionWithDependencies, ['DEP1', 'DEP2']);
 
                     // Act
-                    const myService = container.get<MyServiceInterface>(serviceRegistry.get('HIGHER_ORDER_FUNCTION_WITH_DEPENDENCIES'));
+                    const myService = container.get('HIGHER_ORDER_FUNCTION_WITH_DEPENDENCIES');
 
                     // Assert
                     expect(myService.runTask()).toBe('Executing with dep1: dependency1 and dep2: 42');
@@ -100,7 +100,7 @@ describe('Container', () => {
                         });
 
                     // Act
-                    const myService = container.get<MyServiceInterface>(serviceRegistry.get('MY_SERVICE'));
+                    const myService = container.get('MY_SERVICE');
 
                     // Assert
                     expect(myService.runTask()).toBe('Executing with dep1: dependency1 and dep2: 42');

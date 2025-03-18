@@ -1,7 +1,10 @@
-import {Binding, Container, DependencyKey, Module, ModuleKey} from './types';
+import {Binding, Container, DependencyKey, DependencyKeyType, Module, ModuleKey} from './types';
 import {createModule} from './module';
+import { ServiceRegistry } from './service-registry';
 
-export function createContainer(): Container {
+export function createContainer<Services extends Record<string, unknown> = {}>(
+    serviceRegistry: ServiceRegistry<Services>
+): Container<Services> {
     const modules = new Map<ModuleKey, Module>();
     const singletonInstances = new Map<DependencyKey, unknown>();
     const scopedInstances = new Map<DependencyKey, Map<DependencyKey, unknown>>();
@@ -9,10 +12,10 @@ export function createContainer(): Container {
     let currentScopeId: symbol | undefined;
 
     const DEFAULT_MODULE_KEY = Symbol('DEFAULT');
-    const defaultModule = createModule();
+    const defaultModule = createModule(serviceRegistry);
     modules.set(DEFAULT_MODULE_KEY, defaultModule);
 
-    const bind = (key: DependencyKey) => defaultModule.bind(key);
+    const bind = (key: DependencyKeyType<Services>) => defaultModule.bind(key);
 
     const load = (moduleKey: symbol, module: Module) => modules.set(moduleKey, module);
 

@@ -1,3 +1,4 @@
+import { ServiceRegistry } from "./service-registry";
 
 export type DependencyKey= symbol | string;
 export type DependencyKeyType<T extends Record<string, unknown> = {}> = keyof T;
@@ -36,7 +37,7 @@ interface Bindable<Services extends Record<string, unknown> = {}> {
     };
 }
 
-export interface Container extends Bindable {
+export interface Container<Services extends Record<string, unknown> = {}> extends Bindable<Services>  {
     load(moduleKey: ModuleKey, module: Module): void;
 
     get<T>(key: DependencyKey): T;
@@ -71,3 +72,5 @@ export type ToKeysTuple<
 > = {
     [K in keyof T]: FindKeyByValue<Map, T[K]>;
 };
+
+export type ExtractServiceRegistryType<T> = T extends ServiceRegistry<infer Services> ? Services : never;

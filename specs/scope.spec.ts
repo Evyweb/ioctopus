@@ -1,5 +1,5 @@
-import {Container, createContainer, Scope} from "../src";
-import {DI} from "./examples/DI";
+import {Container, createContainer, ExtractServiceRegistryType, Scope} from "../src";
+import {serviceRegistry} from "./examples/DI";
 import {Mock, vi} from "vitest";
 import {MyServiceClass} from "./examples/Classes";
 import {CurriedFunctionWithDependencies, MyServiceClassInterface, MyServiceInterface} from "./examples/types";
@@ -8,13 +8,13 @@ import {HigherOrderFunctionWithDependencyObject} from "./examples/HigherOrderFun
 
 describe('Scope', () => {
 
-    let container: Container;
+    let container: Container<ExtractServiceRegistryType<typeof serviceRegistry>>;
     let factoryCalls: Mock;
 
     beforeEach(() => {
-        container = createContainer();
-        container.bind(DI.DEP1).toValue('dependency1');
-        container.bind(DI.DEP2).toValue(42);
+        container = createContainer(serviceRegistry);
+        container.bind('DEP1').toValue('dependency1');
+        container.bind('DEP2').toValue(42);
         factoryCalls = vi.fn();
     });
 
@@ -26,18 +26,18 @@ describe('Scope', () => {
         ])('When the scope is default or defined to "singleton"', ({scope}) => {
             it('should return the same instance', () => {
                 // Arrange
-                container.bind(DI.MY_SERVICE).toFactory(() => {
+                container.bind('MY_SERVICE').toFactory(() => {
                     factoryCalls();
                     return HigherOrderFunctionWithDependencyObject({
-                        dep1: container.get<string>(DI.DEP1),
-                        dep2: container.get<number>(DI.DEP2)
+                        dep1: container.get<string>(serviceRegistry.get('DEP1')),
+                        dep2: container.get<number>(serviceRegistry.get('DEP2'))
                     });
                 }, scope as Scope);
 
-                const myService1 = container.get<MyServiceInterface>(DI.MY_SERVICE);
+                const myService1 = container.get<MyServiceInterface>(serviceRegistry.get('MY_SERVICE'));
 
                 // Act
-                const myService2 = container.get<MyServiceInterface>(DI.MY_SERVICE);
+                const myService2 = container.get<MyServiceInterface>(serviceRegistry.get('MY_SERVICE'));
 
                 // Assert
                 expect(myService1).toBe(myService2);
@@ -48,18 +48,18 @@ describe('Scope', () => {
         describe('When the scope is defined to "transient"', () => {
             it('should return a new instance each time', () => {
                 // Arrange
-                container.bind(DI.MY_SERVICE).toFactory(() => {
+                container.bind('MY_SERVICE').toFactory(() => {
                     factoryCalls();
                     return HigherOrderFunctionWithDependencyObject({
-                        dep1: container.get<string>(DI.DEP1),
-                        dep2: container.get<number>(DI.DEP2)
+                        dep1: container.get<string>(serviceRegistry.get('DEP1')),
+                        dep2: container.get<number>(serviceRegistry.get('DEP2'))
                     });
                 }, 'transient');
 
-                const myService1 = container.get<MyServiceInterface>(DI.MY_SERVICE);
+                const myService1 = container.get<MyServiceInterface>(serviceRegistry.get('MY_SERVICE'));
 
                 // Act
-                const myService2 = container.get<MyServiceInterface>(DI.MY_SERVICE);
+                const myService2 = container.get<MyServiceInterface>(serviceRegistry.get('MY_SERVICE'));
 
                 // Assert
                 expect(myService1).not.toBe(myService2);
@@ -70,13 +70,13 @@ describe('Scope', () => {
         describe('When the scope is defined to "scoped"', () => {
             it('should return the same instance within the same scope', () => {
                 // Arrange
-                container.bind(DI.DEP1).toValue('dependency1');
-                container.bind(DI.DEP2).toValue(42);
-                container.bind(DI.MY_SERVICE).toFactory(() => {
+                container.bind('DEP1').toValue('dependency1');
+                container.bind('DEP2').toValue(42);
+                container.bind('MY_SERVICE').toFactory(() => {
                     factoryCalls();
                     return HigherOrderFunctionWithDependencyObject({
-                        dep1: container.get<string>(DI.DEP1),
-                        dep2: container.get<number>(DI.DEP2)
+                        dep1: container.get<string>(serviceRegistry.get('DEP1')),
+                        dep2: container.get<number>(serviceRegistry.get('DEP2'))
                     });
                 }, 'scoped');
 
@@ -85,8 +85,8 @@ describe('Scope', () => {
 
                 // Act
                 container.runInScope(() => {
-                    myService1 = container.get<MyServiceInterface>(DI.MY_SERVICE);
-                    myService2 = container.get<MyServiceInterface>(DI.MY_SERVICE);
+                    myService1 = container.get<MyServiceInterface>(serviceRegistry.get('MY_SERVICE'));
+                    myService2 = container.get<MyServiceInterface>(serviceRegistry.get('MY_SERVICE'));
                 });
 
                 // Assert
@@ -98,11 +98,11 @@ describe('Scope', () => {
 
             it('should return different instances in different scopes', () => {
                 // Arrange
-                container.bind(DI.MY_SERVICE).toFactory(() => {
+                container.bind('MY_SERVICE').toFactory(() => {
                     factoryCalls();
                     return HigherOrderFunctionWithDependencyObject({
-                        dep1: container.get<string>(DI.DEP1),
-                        dep2: container.get<number>(DI.DEP2)
+                        dep1: container.get<string>(serviceRegistry.get('DEP1')),
+                        dep2: container.get<number>(serviceRegistry.get('DEP2'))
                     });
                 }, 'scoped');
 
@@ -110,12 +110,12 @@ describe('Scope', () => {
                 let myService2: MyServiceInterface | undefined;
 
                 container.runInScope(() => {
-                    myService1 = container.get<MyServiceInterface>(DI.MY_SERVICE);
+                    myService1 = container.get<MyServiceInterface>(serviceRegistry.get('MY_SERVICE'));
                 });
 
                 // Act
                 container.runInScope(() => {
-                    myService2 = container.get<MyServiceInterface>(DI.MY_SERVICE);
+                    myService2 = container.get<MyServiceInterface>(serviceRegistry.get('MY_SERVICE'));
                 });
 
                 // Assert
@@ -135,12 +135,12 @@ describe('Scope', () => {
         ])('When the scope is default or defined to "singleton"', ({scope}) => {
             it('should return the same instance', () => {
                 // Arrange
-                container.bind(DI.MY_SERVICE).toClass(MyServiceClass, [DI.DEP1, DI.DEP2], scope as Scope);
+                container.bind('MY_SERVICE').toClass(MyServiceClass, [serviceRegistry.get('DEP1'),serviceRegistry.get('DEP2')], scope as Scope);
 
-                const myService1 = container.get<MyServiceInterface>(DI.MY_SERVICE);
+                const myService1 = container.get<MyServiceInterface>(serviceRegistry.get('MY_SERVICE'));
 
                 // Act
-                const myService2 = container.get<MyServiceInterface>(DI.MY_SERVICE);
+                const myService2 = container.get<MyServiceInterface>(serviceRegistry.get('MY_SERVICE'));
 
                 // Assert
                 expect(myService1).toBe(myService2);
@@ -150,12 +150,12 @@ describe('Scope', () => {
         describe('When the scope is defined to "transient"', () => {
             it('should return a new instance each time', () => {
                 // Arrange
-                container.bind(DI.MY_SERVICE).toClass(MyServiceClass, [DI.DEP1, DI.DEP2], 'transient');
+                container.bind('MY_SERVICE').toClass(MyServiceClass, [serviceRegistry.get('DEP1'),serviceRegistry.get('DEP2')], 'transient');
 
-                const myService1 = container.get<MyServiceInterface>(DI.MY_SERVICE);
+                const myService1 = container.get<MyServiceInterface>(serviceRegistry.get('MY_SERVICE'));
 
                 // Act
-                const myService2 = container.get<MyServiceInterface>(DI.MY_SERVICE);
+                const myService2 = container.get<MyServiceInterface>(serviceRegistry.get('MY_SERVICE'));
 
                 // Assert
                 expect(myService1).not.toBe(myService2);
@@ -171,13 +171,13 @@ describe('Scope', () => {
         ])('When the scope is default or defined to "singleton"', ({scope}) => {
             it('should return the same instance', () => {
                 // Arrange
-                container.bind(DI.MY_SERVICE)
-                    .toHigherOrderFunction(HigherOrderFunctionWithDependencyObject, {dep1: DI.DEP1, dep2: DI.DEP2}, scope as Scope);
+                container.bind('MY_SERVICE')
+                    .toHigherOrderFunction(HigherOrderFunctionWithDependencyObject, {dep1: serviceRegistry.get('DEP1'), dep2: serviceRegistry.get('DEP2')}, scope as Scope);
 
-                const myService1 = container.get<MyServiceInterface>(DI.MY_SERVICE);
+                const myService1 = container.get<MyServiceInterface>(serviceRegistry.get('MY_SERVICE'));
 
                 // Act
-                const myService2 = container.get<MyServiceInterface>(DI.MY_SERVICE);
+                const myService2 = container.get<MyServiceInterface>(serviceRegistry.get('MY_SERVICE'));
 
                 // Assert
                 expect(myService1).toBe(myService2);
@@ -187,13 +187,13 @@ describe('Scope', () => {
         describe('When the scope is defined to "transient"', () => {
             it('should return a new instance each time', () => {
                 // Arrange
-                container.bind(DI.MY_SERVICE)
-                    .toHigherOrderFunction(HigherOrderFunctionWithDependencyObject, {dep1: DI.DEP1, dep2: DI.DEP2}, 'transient');
+                container.bind('MY_SERVICE')
+                    .toHigherOrderFunction(HigherOrderFunctionWithDependencyObject, {dep1: serviceRegistry.get('DEP1'), dep2: serviceRegistry.get('DEP2')}, 'transient');
 
-                const myService1 = container.get<MyServiceInterface>(DI.MY_SERVICE);
+                const myService1 = container.get<MyServiceInterface>(serviceRegistry.get('MY_SERVICE'));
 
                 // Act
-                const myService2 = container.get<MyServiceInterface>(DI.MY_SERVICE);
+                const myService2 = container.get<MyServiceInterface>(serviceRegistry.get('MY_SERVICE'));
 
                 // Assert
                 expect(myService1).not.toBe(myService2);
@@ -209,13 +209,13 @@ describe('Scope', () => {
         ])('When the scope is default or defined to "singleton"', ({scope}) => {
             it('should return the same instance', () => {
                 // Arrange
-                container.bind(DI.MY_SERVICE)
-                    .toCurry(curriedFunctionWithDependencyObject, {dep1: DI.DEP1, dep2: DI.DEP2}, scope as Scope);
+                container.bind('MY_SERVICE')
+                    .toCurry(curriedFunctionWithDependencyObject, {dep1: serviceRegistry.get('DEP1'), dep2: serviceRegistry.get('DEP2')}, scope as Scope);
 
-                const myService1 = container.get<CurriedFunctionWithDependencies>(DI.MY_SERVICE);
+                const myService1 = container.get<CurriedFunctionWithDependencies>(serviceRegistry.get('MY_SERVICE'));
 
                 // Act
-                const myService2 = container.get<CurriedFunctionWithDependencies>(DI.MY_SERVICE);
+                const myService2 = container.get<CurriedFunctionWithDependencies>(serviceRegistry.get('MY_SERVICE'));
 
                 // Assert
                 expect(myService1).toBe(myService2);
@@ -225,13 +225,13 @@ describe('Scope', () => {
         describe('When the scope is defined to "transient"', () => {
             it('should return a new instance each time', () => {
                 // Arrange
-                container.bind(DI.MY_SERVICE)
-                    .toCurry(curriedFunctionWithDependencyObject, {dep1: DI.DEP1, dep2: DI.DEP2}, 'transient');
+                container.bind('MY_SERVICE')
+                    .toCurry(curriedFunctionWithDependencyObject, {dep1: serviceRegistry.get('DEP1'), dep2: serviceRegistry.get('DEP2')}, 'transient');
 
-                const myService1 = container.get<CurriedFunctionWithDependencies>(DI.MY_SERVICE);
+                const myService1 = container.get<CurriedFunctionWithDependencies>(serviceRegistry.get('MY_SERVICE'));
 
                 // Act
-                const myService2 = container.get<CurriedFunctionWithDependencies>(DI.MY_SERVICE);
+                const myService2 = container.get<CurriedFunctionWithDependencies>(serviceRegistry.get('MY_SERVICE'));
 
                 // Assert
                 expect(myService1).not.toBe(myService2);
@@ -242,22 +242,22 @@ describe('Scope', () => {
     describe('When a scoped dependency is resolved outside of a scope', () => {
         it('should throw an error', () => {
             // Arrange
-            container.bind(DI.MY_SERVICE)
-                .toHigherOrderFunction(HigherOrderFunctionWithDependencyObject, {dep1: DI.DEP1, dep2: DI.DEP2}, 'scoped');
+            container.bind('MY_SERVICE')
+                .toHigherOrderFunction(HigherOrderFunctionWithDependencyObject, {dep1: serviceRegistry.get('DEP1'), dep2: serviceRegistry.get('DEP2')}, 'scoped');
 
             // Act & Assert
-            expect(() => container.get<MyServiceInterface>(DI.MY_SERVICE))
-                .toThrowError(`Cannot resolve scoped binding outside of a scope: ${DI.MY_SERVICE.toString()}`);
+            expect(() => container.get<MyServiceInterface>(serviceRegistry.get('MY_SERVICE')))
+                .toThrowError(`Cannot resolve scoped binding outside of a scope: ${serviceRegistry.get('MY_SERVICE').toString()}`);
         });
     });
 
     describe('When an unknown scope is used during binding', () => {
         it('should throw an error', () => {
             // Arrange
-            container.bind(DI.MY_SERVICE).toClass(MyServiceClass, [], 'unknown' as any);
+            container.bind('MY_SERVICE').toClass(MyServiceClass, [], 'unknown' as any);
 
             // Act & Assert
-            expect(() => container.get<MyServiceClassInterface>(DI.MY_SERVICE))
+            expect(() => container.get<MyServiceClassInterface>(serviceRegistry.get('MY_SERVICE')))
                 .toThrowError('Unknown scope: unknown');
         });
     });

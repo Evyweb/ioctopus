@@ -1,5 +1,7 @@
-export type DependencyKey = symbol | string;
 
+export type DependencyKey= symbol | string;
+export type DependencyKeyType<T extends Record<string, unknown> = {}> = keyof T;
+export type AnyFunction = (...args: any) => any;
 export type ModuleKey = symbol | string;
 
 export interface DependencyObject {
@@ -7,21 +9,22 @@ export interface DependencyObject {
 }
 
 export type DependencyArray = DependencyKey[];
+export type DependencyArrayType<DependenciesTuple extends any[], Services extends Record<string, unknown> = {}> = ToKeysTuple<Services, DependenciesTuple>;
 
 export type Scope = 'singleton' | 'transient' | 'scoped';
 
-interface Bindable {
-    bind(key: DependencyKey): {
+interface Bindable<Services extends Record<string, unknown> = {}> {
+    bind(key: DependencyKeyType<Services>): {
         toValue: (value: unknown) => void;
         toFunction: (fn: CallableFunction) => void;
-        toHigherOrderFunction: (
-            fn: CallableFunction,
-            dependencies?: DependencyArray | DependencyObject,
+        toHigherOrderFunction: <Fn extends AnyFunction>(
+            fn: Fn,
+            dependencies?: DependencyArrayType<Parameters<Fn>, Services> | DependencyObject,
             scope?: Scope
         ) => void;
-        toCurry: (
-            fn: CallableFunction,
-            dependencies?: DependencyArray | DependencyObject,
+        toCurry: <Fn extends AnyFunction>(
+            fn: AnyFunction,
+            dependencies?: DependencyArrayType<Parameters<Fn>, Services> | DependencyObject,
             scope?: Scope
         ) => void;
         toFactory: (factory: CallableFunction, scope?: Scope) => void;
@@ -43,7 +46,7 @@ export interface Container extends Bindable {
     runInScope<T>(callback: () => T): T;
 }
 
-export interface Module extends Bindable {
+export interface Module<Services extends Record<string, unknown> = {}> extends Bindable<Services> {
     bindings: Map<DependencyKey, Binding>;
 }
 

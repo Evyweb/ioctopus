@@ -1,12 +1,13 @@
 export class ServiceRegistry<KeyMap extends Record<string, unknown> = {}> {
     keyMap: KeyMap = {} as KeyMap;
 
-    define<OutputType, Key extends string>(key: Key, identifier?: unknown) {
-        this.keyMap = {
-            ...this.keyMap,
-            [key]: identifier,
-        };
+    define<OutputType, Key extends string>(key: Key, _identifier?: unknown) {
+        this.keyMap[key] = Symbol.for(key) as any;
         return new ServiceBinder<OutputType, Key, KeyMap>(this, key);
+    }
+
+    get(key: keyof KeyMap): symbol {
+        return this.keyMap[key] as symbol;
     }
 }
 

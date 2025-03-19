@@ -40,7 +40,7 @@ interface Bindable<Services extends Record<string, unknown> = {}> {
 export interface Container<Services extends Record<string, unknown> = {}> extends Bindable<Services>  {
     load(moduleKey: ModuleKey, module: Module<Services>): void;
 
-    get<T>(key: DependencyKey): T;
+    get<Key extends DependencyKeyType<Services>>(key: Key): Services[Key];
 
     unload(key: ModuleKey): void;
 

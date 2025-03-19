@@ -7,14 +7,7 @@ import {
     MyServiceClassWithoutDependencies
 } from "./examples/Classes";
 import {
-    CurriedFunctionWithDependencies,
-    CurriedFunctionWithoutDependencies,
     LoggerInterface,
-    MyServiceClassInterface,
-    MyServiceInterface,
-    MyUseCaseInterface,
-    SayHelloType,
-    ServiceWithoutDependencyInterface
 } from "./examples/types";
 import {
     curriedFunctionWithDependencies,
@@ -133,7 +126,7 @@ describe('Container', () => {
                     .toHigherOrderFunction(HigherOrderFunctionWithoutDependency, dependencies as any);
 
                 // Act
-                const myService = container.get<ServiceWithoutDependencyInterface>(serviceRegistry.get('HIGHER_ORDER_FUNCTION_WITHOUT_DEPENDENCIES'));
+                const myService = container.get('HIGHER_ORDER_FUNCTION_WITHOUT_DEPENDENCIES');
 
                 // Assert
                 expect(myService.run()).toBe('OtherService');
@@ -155,7 +148,7 @@ describe('Container', () => {
                         .toCurry(curriedFunctionWithDependencies, ['DEP1']);
 
                     // Act
-                    const myService = container.get<CurriedFunctionWithDependencies>(serviceRegistry.get('CURRIED_FUNCTION_WITH_DEPENDENCIES'));
+                    const myService = container.get('CURRIED_FUNCTION_WITH_DEPENDENCIES');
 
                     // Assert
                     expect(myService('curry')).toBe('Hello curry with dependency1');
@@ -169,7 +162,7 @@ describe('Container', () => {
                         .toCurry(curriedFunctionWithDependencyObject, {dep1: serviceRegistry.get('DEP1'), dep2: serviceRegistry.get('DEP2')});
 
                     // Act
-                    const myService = container.get<CurriedFunctionWithDependencies>(serviceRegistry.get('CURRIED_FUNCTION_WITH_DEPENDENCIES_OBJECT'));
+                    const myService = container.get('CURRIED_FUNCTION_WITH_DEPENDENCIES_OBJECT');
 
                     // Assert
                     expect(myService('curry')).toBe('Hello curry with dependency1 and 42');
@@ -200,7 +193,7 @@ describe('Container', () => {
                     .toCurry(curriedFunctionWithoutDependencies, dependencies);
 
                 // Act
-                const myService = container.get<CurriedFunctionWithoutDependencies>(serviceRegistry.get('CURRIED_FUNCTION_WITHOUT_DEPENDENCIES'));
+                const myService = container.get('CURRIED_FUNCTION_WITHOUT_DEPENDENCIES');
 
                 // Assert
                 expect(myService()).toBe('OtherService');
@@ -216,13 +209,13 @@ describe('Container', () => {
 
             container.bind('MY_SERVICE').toFactory(() => {
                 return HigherOrderFunctionWithDependencyObject({
-                    dep1: container.get<string>(serviceRegistry.get('DEP1')),
-                    dep2: container.get<number>(serviceRegistry.get('DEP2'))
+                    dep1: container.get('DEP1'),
+                    dep2: container.get('DEP2')
                 });
             });
 
             // Act
-            const myService = container.get<MyServiceInterface>(serviceRegistry.get('MY_SERVICE'));
+            const myService = container.get('MY_SERVICE');
 
             // Assert
             expect(myService.runTask()).toBe('Executing with dep1: dependency1 and dep2: 42');
@@ -237,8 +230,8 @@ describe('Container', () => {
 
                 container.bind('MY_SERVICE').toFactory(() => {
                     return HigherOrderFunctionWithDependencyObject({
-                        dep1: container.get<string>(serviceRegistry.get('DEP1')),
-                        dep2: container.get<number>(serviceRegistry.get('DEP2'))
+                        dep1: container.get('DEP1'),
+                        dep2: container.get('DEP2')
                     });
                 });
 
@@ -246,19 +239,19 @@ describe('Container', () => {
 
                 container.bind('MY_USE_CASE').toFactory(() => {
                     return UseCase({
-                        myService: container.get<MyServiceInterface>(serviceRegistry.get('MY_SERVICE')),
-                        logger: container.get<LoggerInterface>(serviceRegistry.get('LOGGER')),
-                        sayHello: container.get<SayHelloType>(serviceRegistry.get('SIMPLE_FUNCTION'))
+                        myService: container.get('MY_SERVICE'),
+                        logger: container.get('LOGGER'),
+                        sayHello: container.get('SIMPLE_FUNCTION')
                     });
                 });
 
                 // Act
-                const myUseCase = container.get<MyUseCaseInterface>(serviceRegistry.get('MY_USE_CASE'));
+                const myUseCase = container.get('MY_USE_CASE');
 
                 // Assert
                 expect(myUseCase.execute()).toBe('Executing with dep1: dependency1 and dep2: 42');
 
-                const fakeLogger = container.get<MockProxy<LoggerInterface>>(serviceRegistry.get('LOGGER'));
+                const fakeLogger = container.get('LOGGER') as MockProxy<LoggerInterface>;
                 expect(fakeLogger.log).toHaveBeenCalledTimes(2);
                 expect(fakeLogger.log).toHaveBeenCalledWith('Executing with dep1: dependency1 and dep2: 42');
                 expect(fakeLogger.log).toHaveBeenCalledWith('hello world');
@@ -276,7 +269,7 @@ describe('Container', () => {
                     container.bind('CLASS_WITH_DEPENDENCIES').toClass(MyServiceClass, [serviceRegistry.get('DEP1'), serviceRegistry.get('DEP2')]);
 
                     // Act
-                    const myService = container.get<MyServiceClassInterface>(serviceRegistry.get('CLASS_WITH_DEPENDENCIES'));
+                    const myService = container.get('CLASS_WITH_DEPENDENCIES');
 
                     // Assert
                     expect(myService.runTask()).toBe('Executing with dep1: dependency1 and dep2: 42');
@@ -294,7 +287,7 @@ describe('Container', () => {
                     });
 
                     // Act
-                    const myService = container.get<MyServiceClassInterface>(serviceRegistry.get('CLASS_WITH_DEPENDENCIES'));
+                    const myService = container.get('CLASS_WITH_DEPENDENCIES');
 
                     // Assert
                     expect(myService.runTask()).toBe('Executing with dep1: dependency1 and dep2: 42');
@@ -325,7 +318,7 @@ describe('Container', () => {
                 container.bind('CLASS_WITHOUT_DEPENDENCIES').toClass(MyServiceClassWithoutDependencies);
 
                 // Act
-                const myService = container.get<MyServiceClassInterface>(serviceRegistry.get('CLASS_WITHOUT_DEPENDENCIES'));
+                const myService = container.get('CLASS_WITHOUT_DEPENDENCIES');
 
                 // Assert
                 expect(myService.runTask()).toBe('Executing without dependencies');
@@ -336,7 +329,7 @@ describe('Container', () => {
     describe('When a dependency is missing', () => {
         it('should throw an error', () => {
             // Act
-            const expectCall = expect(() => container.get<string>(serviceRegistry.get('NOT_REGISTERED_VALUE')));
+            const expectCall = expect(() => container.get('NOT_REGISTERED_VALUE'));
 
             // Assert
             expectCall.toThrowError(`No binding found for key: ${serviceRegistry.get('NOT_REGISTERED_VALUE').toString()}`);
@@ -352,7 +345,7 @@ describe('Container', () => {
             container.bind('CIRCULAR_B').toClass(ClassB, [serviceRegistry.get('CIRCULAR_A')]);
 
             // Act
-            const expectCall = expect(() => container.get(serviceRegistry.get('CIRCULAR_A')));
+            const expectCall = expect(() => container.get('CIRCULAR_A'));
 
             // Assert
             expectCall.toThrowError(/Circular dependency detected: Symbol\(CIRCULAR_A\) -> Symbol\(CIRCULAR_B\) -> Symbol\(CIRCULAR_A\)/);

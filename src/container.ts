@@ -1,5 +1,5 @@
-import {Binding, Container, DependencyKey, DependencyKeyType, Module, ModuleKey} from './types';
-import {createModule} from './module';
+import { Binding, Container, DependencyKey, DependencyKeyType, Module, ModuleKey } from './types';
+import { createModule } from './module';
 import { ServiceRegistry } from './service-registry';
 
 export function createContainer<Services extends Record<string, unknown> = {}>(
@@ -52,8 +52,25 @@ export function createContainer<Services extends Record<string, unknown> = {}>(
 
     const endCircularDependencyDetection = () => resolutionStack.pop();
 
+    const resolveDependencyKey = (dependency: DependencyKeyType<Services>) => {
+        // 1) Distinguish between a string key vs. a symbol key
+        let dependencyKey: symbol | undefined;
+
+        if (typeof dependency === 'symbol') {
+            // If 'dependency' is already a symbol, use it directly
+            dependencyKey = dependency;
+        } else {
+            // Otherwise, assume it's a string and look it up in the registry
+            dependencyKey = serviceRegistry.get(dependency);
+        }
+        return dependencyKey;
+    }
+
     const get = <T>(dependency: DependencyKeyType<Services>): T => {
-        const dependencyKey = serviceRegistry.get(dependency);
+        const dependencyKey = resolveDependencyKey(dependency);
+        if (!dependencyKey) {
+            throw new Error(`No key found for dependency: ${dependency.toString()}`);
+        }
         if (isCircularDependency(dependencyKey)) {
             const cycle = buildCycleOf(dependencyKey);
             throw new Error(`Circular dependency detected: ${cycle}`);
@@ -64,7 +81,7 @@ export function createContainer<Services extends Record<string, unknown> = {}>(
         try {
             const binding = getLastBinding(dependencyKey);
 
-            const {factory, scope} = binding;
+            const { factory, scope } = binding;
 
             if (scope === 'singleton') {
                 if (!singletonInstances.has(dependencyKey)) {
@@ -114,5 +131,5 @@ export function createContainer<Services extends Record<string, unknown> = {}>(
         }
     };
 
-    return {bind, load, get, unload, runInScope};
+    return { bind, load, get, unload, runInScope };
 }

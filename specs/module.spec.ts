@@ -1,6 +1,5 @@
 import {Container, createContainer, createModule, ExtractServiceRegistryType} from "../src";
 import {serviceRegistry} from "./examples/DI";
-import {MyServiceInterface, SayHelloType} from "./examples/types";
 import {HigherOrderFunctionWithDependencyObject} from "./examples/HigherOrderFunctions";
 import {sayHelloWorld} from "./examples/SimpleFunctions";
 
@@ -22,7 +21,7 @@ describe('Module', () => {
                 container.load(moduleKey, myModule);
 
                 // Act
-                const sayHello = container.get<SayHelloType>(serviceRegistry.get('SIMPLE_FUNCTION'));
+                const sayHello = container.get('SIMPLE_FUNCTION');
 
                 // Assert
                 expect(sayHello()).toBe('hello world');
@@ -49,7 +48,7 @@ describe('Module', () => {
                 container.load(Symbol('module3'), module3);
 
                 // Act
-                const myService = container.get<MyServiceInterface>(serviceRegistry.get('MY_SERVICE'));
+                const myService = container.get('MY_SERVICE');
 
                 // Assert
                 expect(myService.runTask()).toBe('Executing with dep1: dependency1 and dep2: 42');
@@ -76,7 +75,7 @@ describe('Module', () => {
                 container.load(Symbol('module3'), module3);
 
                 // Act
-                const myService = container.get<MyServiceInterface>(serviceRegistry.get('MY_SERVICE'));
+                const myService = container.get('MY_SERVICE');
 
                 // Assert
                 expect(myService.runTask()).toBe('Executing with dep1: NEW dependency1 and dep2: 42');
@@ -101,14 +100,14 @@ describe('Module', () => {
                 module2.bind('SIMPLE_FUNCTION').toFunction(sayHelloWorld);
                 container.load(MODULE2, module2);
 
-                const sayHelloBeforeUnload = container.get<SayHelloType>(serviceRegistry.get('SIMPLE_FUNCTION'));
+                const sayHelloBeforeUnload = container.get('SIMPLE_FUNCTION');
                 expect(sayHelloBeforeUnload()).toBe('hello world');
 
                 // Act
                 container.unload(MODULE2);
 
                 // Assert
-                const sayHelloAfterUnload = container.get<SayHelloType>(serviceRegistry.get('SIMPLE_FUNCTION'));
+                const sayHelloAfterUnload = container.get('SIMPLE_FUNCTION');
                 expect(sayHelloAfterUnload()).toBe('module 1 hello world');
             });
         });
@@ -122,14 +121,14 @@ describe('Module', () => {
                 module.bind('SIMPLE_FUNCTION').toFunction(sayHelloWorld);
                 container.load(MY_MODULE, module);
 
-                const sayHelloBeforeUnload = container.get<SayHelloType>(serviceRegistry.get('SIMPLE_FUNCTION'));
+                const sayHelloBeforeUnload = container.get('SIMPLE_FUNCTION');
                 expect(sayHelloBeforeUnload()).toBe('hello world');
 
                 // Act
                 container.unload(MY_MODULE);
 
                 // Assert
-                expect(() => container.get<SayHelloType>(serviceRegistry.get('SIMPLE_FUNCTION')))
+                expect(() => container.get('SIMPLE_FUNCTION'))
                     .toThrowError(`No binding found for key: ${serviceRegistry.get('SIMPLE_FUNCTION').toString()}`);
             });
         });

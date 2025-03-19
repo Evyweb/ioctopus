@@ -24,7 +24,7 @@ interface Bindable<Services extends Record<string, unknown> = {}> {
             scope?: Scope
         ) => void;
         toCurry: <Fn extends AnyFunction>(
-            fn: AnyFunction,
+            fn: Fn,
             dependencies?: DependencyArrayType<Parameters<Fn>, Services> | DependencyObject,
             scope?: Scope
         ) => void;

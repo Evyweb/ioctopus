@@ -190,7 +190,7 @@ describe('Container', () => {
                 // Arrange
                 container.bind('DEP1').toValue('dependency1');
                 container.bind('CURRIED_FUNCTION_WITHOUT_DEPENDENCIES')
-                    .toCurry(curriedFunctionWithoutDependencies, dependencies);
+                    .toCurry(curriedFunctionWithoutDependencies, dependencies as any);
 
                 // Act
                 const myService = container.get('CURRIED_FUNCTION_WITHOUT_DEPENDENCIES');

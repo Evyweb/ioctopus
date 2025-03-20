@@ -1,4 +1,4 @@
-import {serviceRegistry} from "./examples/DI";
+import {serviceRegistry} from "./examples/ServiceRegistry";
 import {Container, createContainer, ExtractServiceRegistryKeys, ExtractServiceRegistryType} from "../src";
 import {mock, MockProxy} from "vitest-mock-extended";
 import {

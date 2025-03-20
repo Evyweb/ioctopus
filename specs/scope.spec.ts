@@ -1,5 +1,5 @@
 import {Container, createContainer, ExtractServiceRegistryType, Scope} from "../src";
-import {serviceRegistry} from "./examples/DI";
+import {serviceRegistry} from "./examples/ServiceRegistry";
 import {Mock, vi} from "vitest";
 import {MyServiceClass} from "./examples/Classes";
 import {MyServiceInterface} from "./examples/types";

@@ -1,5 +1,5 @@
 import { Container, createContainer, createModule, ExtractServiceRegistryType } from "../src";
-import { serviceRegistry } from "./examples/DI";
+import { serviceRegistry } from "./examples/ServiceRegistry";
 import { HigherOrderFunctionWithDependencyObject } from "./examples/HigherOrderFunctions";
 import { sayHelloWorld } from "./examples/SimpleFunctions";
 

@@ -172,7 +172,7 @@ describe('Scope', () => {
             it('should return the same instance', () => {
                 // Arrange
                 container.bind('MY_SERVICE')
-                    .toHigherOrderFunction(HigherOrderFunctionWithDependencyObject, {dep1: serviceRegistry.get('DEP1'), dep2: serviceRegistry.get('DEP2')}, scope as Scope);
+                    .toHigherOrderFunction(HigherOrderFunctionWithDependencyObject, {dep1: 'DEP1', dep2: 'DEP2'}, scope as Scope);
 
                 const myService1 = container.get('MY_SERVICE');
 
@@ -188,7 +188,7 @@ describe('Scope', () => {
             it('should return a new instance each time', () => {
                 // Arrange
                 container.bind('MY_SERVICE')
-                    .toHigherOrderFunction(HigherOrderFunctionWithDependencyObject, {dep1: serviceRegistry.get('DEP1'), dep2: serviceRegistry.get('DEP2')}, 'transient');
+                    .toHigherOrderFunction(HigherOrderFunctionWithDependencyObject, {dep1: 'DEP1', dep2: 'DEP2'}, 'transient');
 
                 const myService1 = container.get('MY_SERVICE');
 
@@ -210,7 +210,7 @@ describe('Scope', () => {
             it('should return the same instance', () => {
                 // Arrange
                 container.bind('MY_SERVICE')
-                    .toCurry(curriedFunctionWithDependencyObject, {dep1: serviceRegistry.get('DEP1'), dep2: serviceRegistry.get('DEP2')}, scope as Scope);
+                    .toCurry(curriedFunctionWithDependencyObject, {dep1: 'DEP1', dep2: 'DEP2'}, scope as Scope);
 
                 const myService1 = container.get('MY_SERVICE');
 
@@ -226,7 +226,7 @@ describe('Scope', () => {
             it('should return a new instance each time', () => {
                 // Arrange
                 container.bind('MY_SERVICE')
-                    .toCurry(curriedFunctionWithDependencyObject, {dep1: serviceRegistry.get('DEP1'), dep2: serviceRegistry.get('DEP2')}, 'transient');
+                    .toCurry(curriedFunctionWithDependencyObject, {dep1: 'DEP1', dep2: 'DEP2'}, 'transient');
 
                 const myService1 = container.get('MY_SERVICE');
 
@@ -243,7 +243,7 @@ describe('Scope', () => {
         it('should throw an error', () => {
             // Arrange
             container.bind('MY_SERVICE')
-                .toHigherOrderFunction(HigherOrderFunctionWithDependencyObject, {dep1: serviceRegistry.get('DEP1'), dep2: serviceRegistry.get('DEP2')}, 'scoped');
+                .toHigherOrderFunction(HigherOrderFunctionWithDependencyObject, {dep1: 'DEP1', dep2: 'DEP2'}, 'scoped');
 
             // Act & Assert
             expect(() => container.get('MY_SERVICE'))

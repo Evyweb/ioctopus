@@ -1,7 +1,7 @@
-import {Container, createContainer, createModule, ExtractServiceRegistryType} from "../src";
-import {serviceRegistry} from "./examples/DI";
-import {HigherOrderFunctionWithDependencyObject} from "./examples/HigherOrderFunctions";
-import {sayHelloWorld} from "./examples/SimpleFunctions";
+import { Container, createContainer, createModule, ExtractServiceRegistryType } from "../src";
+import { serviceRegistry } from "./examples/DI";
+import { HigherOrderFunctionWithDependencyObject } from "./examples/HigherOrderFunctions";
+import { sayHelloWorld } from "./examples/SimpleFunctions";
 
 describe('Module', () => {
 
@@ -13,20 +13,20 @@ describe('Module', () => {
 
     describe('When a module is loaded', () => {
         describe.each([Symbol('myModule'), 'myModule'])
-        ('When the module has dependencies', (moduleKey) => {
-            it(`should return all dependencies of module with key: ${moduleKey.toString()}`, () => {
-                // Arrange
-                const myModule = createModule(serviceRegistry);
-                myModule.bind('SIMPLE_FUNCTION').toFunction(sayHelloWorld);
-                container.load(moduleKey, myModule);
+            ('When the module has dependencies', (moduleKey) => {
+                it(`should return all dependencies of module with key: ${moduleKey.toString()}`, () => {
+                    // Arrange
+                    const myModule = createModule(serviceRegistry);
+                    myModule.bind('SIMPLE_FUNCTION').toFunction(sayHelloWorld);
+                    container.load(moduleKey, myModule);
 
-                // Act
-                const sayHello = container.get('SIMPLE_FUNCTION');
+                    // Act
+                    const sayHello = container.get('SIMPLE_FUNCTION');
 
-                // Assert
-                expect(sayHello()).toBe('hello world');
+                    // Assert
+                    expect(sayHello()).toBe('hello world');
+                });
             });
-        });
 
         describe('When a dependency of the module is registered in another module', () => {
             it('should correctly resolve all dependencies', () => {
@@ -39,8 +39,8 @@ describe('Module', () => {
 
                 const module3 = createModule(serviceRegistry);
                 module3.bind('MY_SERVICE').toHigherOrderFunction(HigherOrderFunctionWithDependencyObject, {
-                    dep1: serviceRegistry.get('DEP1'),
-                    dep2: serviceRegistry.get('DEP2'),
+                    dep1: 'DEP1',
+                    dep2: 'DEP2',
                 });
 
                 container.load(Symbol('module1'), module1);
@@ -65,8 +65,8 @@ describe('Module', () => {
 
                 const module3 = createModule(serviceRegistry);
                 module3.bind('MY_SERVICE').toHigherOrderFunction(HigherOrderFunctionWithDependencyObject, {
-                    dep1: serviceRegistry.get('DEP1'),
-                    dep2: serviceRegistry.get('DEP2'),
+                    dep1: 'DEP1',
+                    dep2: 'DEP2',
                 });
 
                 container.bind('DEP2').toValue(42);

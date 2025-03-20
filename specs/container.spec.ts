@@ -88,8 +88,8 @@ describe('Container', () => {
                     // Arrange
                     container.bind('MY_SERVICE')
                         .toHigherOrderFunction(HigherOrderFunctionWithDependencyObject, {
-                            dep1: serviceRegistry.get('DEP1'),
-                            dep2: serviceRegistry.get('DEP2')
+                            dep1: 'DEP1',
+                            dep2: 'DEP2'
                         });
 
                     // Act
@@ -159,7 +159,10 @@ describe('Container', () => {
                 it('should return the function with all its dependencies resolved', () => {
                     // Arrange
                     container.bind('CURRIED_FUNCTION_WITH_DEPENDENCIES_OBJECT')
-                        .toCurry(curriedFunctionWithDependencyObject, {dep1: serviceRegistry.get('DEP1'), dep2: serviceRegistry.get('DEP2')});
+                        .toCurry(curriedFunctionWithDependencyObject, {
+                            dep1: 'DEP1',
+                            dep2: 'DEP2'
+                        });
 
                     // Act
                     const myService = container.get('CURRIED_FUNCTION_WITH_DEPENDENCIES_OBJECT');

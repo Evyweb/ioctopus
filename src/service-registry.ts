@@ -1,3 +1,8 @@
+/**
+
+ Service Registry is a design pattern that allows you to define services in a single place. 
+
+*/
 export class ServiceRegistry<KeyMap extends Record<string, unknown> = {}> {
     keyMap: KeyMap = {} as KeyMap;
 

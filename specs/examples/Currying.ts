@@ -8,6 +8,6 @@ export const curriedFunctionWithDependencies =
 export const curriedFunctionWithDependencyObject =
     ({dep1, dep2}: {
         dep1: string,
-        dep2: string
+        dep2: number
     }): CurriedFunctionWithDependencies => (name: string) => `Hello ${name} with ${dep1} and ${dep2}`;
 

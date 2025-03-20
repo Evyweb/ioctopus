@@ -1,4 +1,5 @@
 import { ServiceRegistry} from "../../src";
+import { ClassA, ClassB } from "./Circular";
 import { CurriedFunctionWithDependencies, CurriedFunctionWithoutDependencies, LoggerInterface, MyServiceClassInterface, MyServiceInterface, MyUseCaseInterface, SayHelloType, ServiceWithoutDependencyInterface } from "./types";
 
 export const serviceRegistry = new ServiceRegistry()
@@ -16,5 +17,5 @@ export const serviceRegistry = new ServiceRegistry()
     .define('CURRIED_FUNCTION_WITHOUT_DEPENDENCIES').mapTo<CurriedFunctionWithoutDependencies>()
     .define('CURRIED_FUNCTION_WITH_DEPENDENCIES').mapTo<CurriedFunctionWithDependencies>()
     .define('CURRIED_FUNCTION_WITH_DEPENDENCIES_OBJECT').mapTo<CurriedFunctionWithDependencies>()
-    .define('CIRCULAR_A').mapTo()
-    .define('CIRCULAR_B').mapTo();
+    .define('CIRCULAR_A').mapTo<ClassA>()
+    .define('CIRCULAR_B').mapTo<ClassB>();

@@ -1,4 +1,4 @@
-import { AnyFunction, DependencyArray, DependencyArrayType, DependencyKey, DependencyObject, Module, ResolveFunction, Scope } from "./types";
+import { AnyClass, AnyFunction, DependencyArray, DependencyArrayType, DependencyKey, DependencyObject, DependencyObjectType, Module, ResolveFunction, Scope } from "./types";
 import { ServiceRegistry } from './service-registry';
 
 interface Binding {
@@ -73,9 +73,9 @@ export function createModule<Services extends Record<string, unknown> = {}>(
             bindings.set(resovledKey, { factory: (resolve: ResolveFunction) => factory(resolve), scope });
         };
 
-        const toClass = (
-            AnyClass: new (...args: unknown[]) => unknown,
-            dependencies?: DependencyArray | DependencyObject,
+        const toClass = <Class extends AnyClass>(
+            AnyClass: Class,
+            dependencies?: DependencyArrayType<ConstructorParameters<Class>, Services> | DependencyObjectType<ConstructorParameters<Class>[0], Services>,
             scope: Scope = 'singleton'
         ) => {
 

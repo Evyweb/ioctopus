@@ -135,7 +135,7 @@ describe('Scope', () => {
         ])('When the scope is default or defined to "singleton"', ({scope}) => {
             it('should return the same instance', () => {
                 // Arrange
-                container.bind('MY_SERVICE').toClass(MyServiceClass, [serviceRegistry.get('DEP1'),serviceRegistry.get('DEP2')], scope as Scope);
+                container.bind('MY_SERVICE').toClass(MyServiceClass, ['DEP1', 'DEP2'], scope as Scope);
 
                 const myService1 = container.get('MY_SERVICE');
 
@@ -150,7 +150,7 @@ describe('Scope', () => {
         describe('When the scope is defined to "transient"', () => {
             it('should return a new instance each time', () => {
                 // Arrange
-                container.bind('MY_SERVICE').toClass(MyServiceClass, [serviceRegistry.get('DEP1'),serviceRegistry.get('DEP2')], 'transient');
+                container.bind('MY_SERVICE').toClass(MyServiceClass, ['DEP1', 'DEP2'], 'transient');
 
                 const myService1 = container.get('MY_SERVICE');
 
@@ -254,7 +254,7 @@ describe('Scope', () => {
     describe('When an unknown scope is used during binding', () => {
         it('should throw an error', () => {
             // Arrange
-            container.bind('MY_SERVICE').toClass(MyServiceClass, [], 'unknown' as any);
+            container.bind('MY_SERVICE').toClass(MyServiceClass, [] as any, 'unknown' as any);
 
             // Act & Assert
             expect(() => container.get('MY_SERVICE'))

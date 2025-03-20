@@ -269,7 +269,7 @@ describe('Container', () => {
                     // Arrange
                     container.bind('DEP1').toValue('dependency1');
                     container.bind('DEP2').toValue(42);
-                    container.bind('CLASS_WITH_DEPENDENCIES').toClass(MyServiceClass, [serviceRegistry.get('DEP1'), serviceRegistry.get('DEP2')]);
+                    container.bind('CLASS_WITH_DEPENDENCIES').toClass(MyServiceClass, ['DEP1', 'DEP2']);
 
                     // Act
                     const myService = container.get('CLASS_WITH_DEPENDENCIES');
@@ -285,8 +285,8 @@ describe('Container', () => {
                     container.bind('DEP1').toValue('dependency1');
                     container.bind('DEP2').toValue(42);
                     container.bind('CLASS_WITH_DEPENDENCIES').toClass(MyServiceClassWithDependencyObject, {
-                        dep1: serviceRegistry.get('DEP1'),
-                        dep2: serviceRegistry.get('DEP2')
+                        dep1: 'DEP1',
+                        dep2: 'DEP2'
                     });
 
                     // Act
@@ -344,8 +344,8 @@ describe('Container', () => {
             // Arrange
             const container = createContainer(serviceRegistry);
 
-            container.bind('CIRCULAR_A').toClass(ClassA, [serviceRegistry.get('CIRCULAR_B')]);
-            container.bind('CIRCULAR_B').toClass(ClassB, [serviceRegistry.get('CIRCULAR_A')]);
+            container.bind('CIRCULAR_A').toClass(ClassA, ['CIRCULAR_B']);
+            container.bind('CIRCULAR_B').toClass(ClassB, ['CIRCULAR_A']);
 
             // Act
             const expectCall = expect(() => container.get('CIRCULAR_A'));

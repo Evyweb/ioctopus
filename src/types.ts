@@ -3,6 +3,7 @@ import { ServiceRegistry } from "./service-registry";
 export type DependencyKey= symbol | string;
 export type DependencyKeyType<T extends Record<string, unknown> = {}> = keyof T;
 export type AnyFunction = (...args: any) => any;
+export type AnyClass<Return = any> = new (...args: any) => Return;
 export type ModuleKey = symbol | string;
 
 export interface DependencyObject {
@@ -31,9 +32,9 @@ interface Bindable<Services extends Record<string, unknown> = {}> {
             scope?: Scope
         ) => void;
         toFactory: (factory: CallableFunction, scope?: Scope) => void;
-        toClass: <C>(
-            constructor: new (...args: any[]) => C,
-            dependencies?: DependencyArray | DependencyObject,
+        toClass: <Class extends AnyClass>(
+            constructor: Class,
+            dependencies?: DependencyArrayType<ConstructorParameters<Class>, Services> | DependencyObjectType<ConstructorParameters<Class>[0], Services>,
             scope?: Scope
         ) => void;
     };
@@ -97,11 +98,6 @@ export type ToKeysTuple<
     [K in keyof T]: FindKeyByValue<Map, T[K]>;
 };
 
-type Out = ToKeysObject<{ dep1: string, dep2: string, c: { name: string } }, { dep1: string, dep2: string }>;
-const out: Out = {
-    dep1: 'dep1',
-    dep2: 'dep1',
-}
 /**
  * Extracts the keys of a type that are of a specific value and returns an object
  * 

@@ -31,6 +31,16 @@ describe('Container', () => {
         container = createContainer(serviceRegistry);
     });
 
+    describe('Use not register key in service registry', () => {
+        it('should throw an error', () => {
+            // Act
+            const expectCall = expect(() => container.get('NOT_FOUND_KEY' as any));
+
+            // Assert
+            expectCall.toThrowError(`No key found for dependency: NOT_FOUND_KEY`);
+        });
+    });
+
     describe.each([
         // [{ key: serviceRegistry.get('DEP1'), value: 'dependency1' }],
         // TODO: Consider to support string as identiifer, Currently Support only key as string, to get actual symbol value

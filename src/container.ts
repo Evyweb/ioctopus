@@ -1,7 +1,7 @@
-import {Binding, Container, DependencyKey, Module, ModuleKey} from './types';
+import {Binding, Container, DependencyKey, Module, ModuleKey, TypedContainer, DefaultRegistry} from './types';
 import {createModule} from './module';
 
-export function createContainer(): Container {
+function createContainerCore() {
     const modules = new Map<ModuleKey, Module>();
     const singletonInstances = new Map<DependencyKey, unknown>();
     const scopedInstances = new Map<DependencyKey, Map<DependencyKey, unknown>>();
@@ -11,8 +11,6 @@ export function createContainer(): Container {
     const DEFAULT_MODULE_KEY = Symbol('DEFAULT');
     const defaultModule = createModule();
     modules.set(DEFAULT_MODULE_KEY, defaultModule);
-
-    const bind = (key: DependencyKey) => defaultModule.bind(key);
 
     const load = (moduleKey: symbol, module: Module) => modules.set(moduleKey, module);
 
@@ -43,23 +41,22 @@ export function createContainer(): Container {
 
     const isCircularDependency = (key: DependencyKey): boolean => resolutionStack.includes(key);
 
-    const buildCycleOf = (key: DependencyKey) => [...resolutionStack, key].map((k) => k.toString()).join(' -> ');
+    const buildCyclePath = (key: DependencyKey) => [...resolutionStack, key].map((k) => k.toString()).join(' -> ');
 
-    const startCircularDependencyDetectionFor = (dependencyKey: DependencyKey) => resolutionStack.push(dependencyKey);
+    const startResolution = (dependencyKey: DependencyKey) => resolutionStack.push(dependencyKey);
 
-    const endCircularDependencyDetection = () => resolutionStack.pop();
+    const endResolution = () => resolutionStack.pop();
 
-    const get = <T>(dependencyKey: DependencyKey): T => {
+    const resolveBinding = <T>(dependencyKey: DependencyKey): T => {
         if (isCircularDependency(dependencyKey)) {
-            const cycle = buildCycleOf(dependencyKey);
+            const cycle = buildCyclePath(dependencyKey);
             throw new Error(`Circular dependency detected: ${cycle}`);
         }
 
-        startCircularDependencyDetectionFor(dependencyKey);
+        startResolution(dependencyKey);
 
         try {
             const binding = getLastBinding(dependencyKey);
-
             const {factory, scope} = binding;
 
             if (scope === 'singleton') {
@@ -91,12 +88,12 @@ export function createContainer(): Container {
 
             throw new Error(`Unknown scope: ${scope}`);
         } finally {
-            endCircularDependencyDetection();
+            endResolution();
         }
     };
 
     const resolveDependency = (depKey: DependencyKey): unknown => {
-        return get(depKey);
+        return resolveBinding(depKey);
     };
 
     const runInScope = <T>(callback: () => T): T => {
@@ -110,5 +107,28 @@ export function createContainer(): Container {
         }
     };
 
-    return {bind, load, get, unload, runInScope};
+    return {
+        defaultModule,
+        load,
+        unload,
+        runInScope,
+        resolveBinding,
+    };
+}
+
+export function createContainer(): Container;
+export function createContainer<TRegistry>(): TypedContainer<TRegistry>;
+export function createContainer<TRegistry = DefaultRegistry>(): Container | TypedContainer<TRegistry> {
+    const core = createContainerCore();
+
+    const bind = (key: DependencyKey) => core.defaultModule.bind(key);
+    const get = <T>(key: DependencyKey): T => core.resolveBinding<T>(key);
+
+    return {
+        bind,
+        load: core.load,
+        get,
+        unload: core.unload,
+        runInScope: core.runInScope,
+    } as Container | TypedContainer<TRegistry>;
 }

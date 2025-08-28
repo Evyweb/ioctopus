@@ -1,11 +1,13 @@
-import {DependencyArray, DependencyKey, DependencyObject, Module, ResolveFunction, Scope} from "./types";
+import {DependencyArray, DependencyKey, DependencyObject, Module, ResolveFunction, Scope, TypedModule, DefaultRegistry} from "./types";
 
 interface Binding {
     factory: (resolve: ResolveFunction) => unknown;
     scope: Scope;
 }
 
-export function createModule(): Module {
+export function createModule(): Module;
+export function createModule<TRegistry>(): TypedModule<TRegistry>;
+export function createModule<TRegistry = DefaultRegistry>(): Module | TypedModule<TRegistry> {
     const bindings = new Map<DependencyKey, Binding>();
 
     const resolveDependenciesArray = (dependencies: DependencyArray, resolve: ResolveFunction) =>
@@ -100,5 +102,5 @@ export function createModule(): Module {
         };
     };
 
-    return {bind, bindings};
+    return {bind, bindings} as unknown as Module | TypedModule<TRegistry>;
 }

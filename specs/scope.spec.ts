@@ -245,9 +245,11 @@ describe('Scope', () => {
             container.bind(DI.MY_SERVICE)
                 .toHigherOrderFunction(HigherOrderFunctionWithDependencyObject, {dep1: DI.DEP1, dep2: DI.DEP2}, 'scoped');
 
-            // Act & Assert
-            expect(() => container.get<MyServiceInterface>(DI.MY_SERVICE))
-                .toThrowError(`Cannot resolve scoped binding outside of a scope: ${DI.MY_SERVICE.toString()}`);
+            // Act
+            const expectCall = expect(() => container.get<MyServiceInterface>(DI.MY_SERVICE));
+
+            // Assert
+            expectCall.toThrowError(`Cannot resolve scoped binding outside of a scope: ${DI.MY_SERVICE.toString()}`);
         });
     });
 
@@ -256,9 +258,11 @@ describe('Scope', () => {
             // Arrange
             container.bind(DI.MY_SERVICE).toClass(MyServiceClass, [], 'unknown' as any);
 
-            // Act & Assert
-            expect(() => container.get<MyServiceClassInterface>(DI.MY_SERVICE))
-                .toThrowError('Unknown scope: unknown');
+            // Act
+            const expectCall = expect(() => container.get<MyServiceClassInterface>(DI.MY_SERVICE));
+
+            // Assert
+            expectCall.toThrowError('Unknown scope: unknown');
         });
     });
 });

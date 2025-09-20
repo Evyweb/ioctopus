@@ -1,4 +1,4 @@
-import {createContainer, TypedContainer} from '../src';
+﻿import {createContainer, TypedContainer} from '../src';
 import {
   FakeLogger,
   ServiceClassNoDeps,
@@ -153,3 +153,9 @@ describe('Registry', () => {
     });
   });
 });
+
+
+
+
+
+

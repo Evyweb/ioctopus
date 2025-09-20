@@ -1,4 +1,4 @@
-export type DependencyKey = symbol | string;
+﻿export type DependencyKey = symbol | string;
 
 export type ModuleKey = symbol | string;
 
@@ -14,8 +14,23 @@ export interface DefaultRegistry {
     [key: string]: unknown;
 }
 
-type RegistryKey<TRegistry> = keyof TRegistry & DependencyKey;
-type RegistryValue<TRegistry, K extends keyof TRegistry> = TRegistry[K];
+type RegistryKey<TRegistry> = Extract<keyof TRegistry, DependencyKey>;
+
+type IncompatibleOverride<K extends PropertyKey, Expected, Provided> = {
+    __error: 'Incompatible override type for registry key';
+    key: K;
+    expected: Expected;
+    provided: Provided;
+};
+
+type CompatibleKey<TRegistry, TOverride> = [TOverride] extends [never]
+    ? RegistryKey<TRegistry>
+    : {
+          [K in RegistryKey<TRegistry>]: TOverride extends TRegistry[K]
+              ? K
+              : IncompatibleOverride<K, TRegistry[K], TOverride>
+      }[RegistryKey<TRegistry>];
+
 
 interface Bindable {
     bind(key: DependencyKey): {
@@ -42,7 +57,7 @@ interface Bindable {
 
 interface TypedBindable<TRegistry> {
     bind<K extends RegistryKey<TRegistry>>(key: K): {
-        toValue: (value: RegistryValue<TRegistry, K>) => void;
+        toValue: (value: TRegistry[K]) => void;
         toFunction: (fn: CallableFunction) => void;
         toHigherOrderFunction: (
             fn: CallableFunction,
@@ -118,9 +133,10 @@ export interface TypedContainer<TRegistry> {
     load<TModuleRegistry>(moduleKey: ModuleKey, module: TypedModule<TModuleRegistry>): void;
     load(moduleKey: ModuleKey, module: Module): void;
 
-    get<TOverride = never, K extends keyof TRegistry & DependencyKey = keyof TRegistry & DependencyKey>(
-        key: K
-    ): [TOverride] extends [never] ? TRegistry[K] : TOverride;
+    get<
+        TOverride = never,
+        K extends CompatibleKey<TRegistry, TOverride> = CompatibleKey<TRegistry, TOverride>
+    >(key: K): [TOverride] extends [never] ? TRegistry[K & keyof TRegistry] : TOverride;
 
     unload(key: ModuleKey): void;
 

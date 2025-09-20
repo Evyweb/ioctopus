@@ -1,4 +1,4 @@
-# A simple IOC container for Typescript
+# A simple IoC container for TypeScript
 [![NPM Version](https://img.shields.io/npm/v/%40evyweb%2Fioctopus.svg?style=flat)]()
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/evyweb/ioctopus/main.yml)
 [![codecov](https://codecov.io/gh/Evyweb/ioctopus/graph/badge.svg?token=A3Z8UCNHDY)](https://codecov.io/gh/Evyweb/ioctopus)
@@ -9,13 +9,13 @@
 ![logo-ioctopus.png](assets/logo-ioctopus.png)
 
 ## Introduction
-An IOC (Inversion of Control) container for Typescript. 
+An IoC (Inversion of Control) container for TypeScript. 
 
-The idea behind is to create a simple container that can be used to register and resolve dependencies working with classes & functions but without reflect metadata.
+The idea behind it is to create a simple container that can register and resolve dependencies for classes and functions without relying on reflect metadata.
 
-It is using simple Typescript code, so it can be used in any project without any dependency.
+It uses plain TypeScript code, so it can be added to any project without additional dependencies.
 
-Works also in NextJS middleware and node+edge runtimes.
+It also works in Next.js middleware and Node and Edge runtimes.
 
 ## Installation
 ```npm i @evyweb/ioctopus```
@@ -23,16 +23,16 @@ Works also in NextJS middleware and node+edge runtimes.
 ## How to use
 
 To use ioctopus, you need to create a container and bind your dependencies.
-To do so you need to create an id for each dependency you want to register.
+To do so, you need to create an ID for each dependency you want to register.
 
-This id that we call an "injection token" can be a string or a symbol.
-(Please note that you have to be consistent and use always strings for binding and resolving dependencies or always symbols, you can't mix them).
+This ID, which we call an "injection token," can be a string or a symbol.
+(Please note that you must be consistent: either always use strings for binding and resolving dependencies or always use symbols; you can't mix them.)
 
-Then you can bind the dependency to a value, a function, a class, a factory, a higher order function, or a curried function.
+Then you can bind the dependency to a value, a function, a class, a factory, a higher-order function, or a curried function.
 
 #### Type-Safe Registry (Recommended)
 
-**⚠️ Using a type-safe registry is the recommended approach for better type safety and developer experience.**
+**Note:** Using a type-safe registry is the recommended approach for better type safety and developer experience.
 
 You can define a registry type or interface to get full type safety for your dependency injection keys and their corresponding types. This eliminates the need for manual casting when resolving dependencies.
 
@@ -71,7 +71,7 @@ const container = createContainer();
 ### Register the dependencies
 
 #### Primitives
-You can register primitives
+You can register primitives.
 ```typescript
 // using strings
 container.bind('DEP1').toValue('dependency1');
@@ -83,31 +83,33 @@ container.bind(DI.DEP2).toValue(42);
 ```
 
 #### Functions
-- You can register functions without dependencies
+- You can register functions without dependencies:
 ```typescript
 const sayHelloWorld = () => console.log('Hello World');
 
-container.bind(DI.SIMPLE_FUNCTION).toFunction(sayHelloWorld);
-
-// or using strings
+// using strings
 container.bind('SIMPLE_FUNCTION').toFunction(sayHelloWorld);
+
+// or using symbols
+container.bind(DI.SIMPLE_FUNCTION).toFunction(sayHelloWorld);
 ```
 
 #### Currying
-- You can register functions with dependencies using currying (1 level of currying)
+- You can register functions with dependencies using currying (1 level of currying):
 
 ```typescript
 const myFunction = (dep1: string, dep2: number) => (name: string) => console.log(`${dep1} ${dep2} ${name}`);
 
-container.bind(DI.CURRIED_FUNCTION_WITH_DEPENDENCIES)
-    .toCurry(myFunction, [DI.DEP1, DI.DEP2]);
-
-// or using strings
+// using strings
 container.bind('CURRIED_FUNCTION_WITH_DEPENDENCIES')
     .toCurry(myFunction, ['DEP1', 'DEP2']);
+
+// or using symbols
+container.bind(DI.CURRIED_FUNCTION_WITH_DEPENDENCIES)
+    .toCurry(myFunction, [DI.DEP1, DI.DEP2]);
 ```
 
-- You can also use a dependency object
+- You can also use a dependency object:
 
 ```typescript
 interface Dependencies {
@@ -118,16 +120,17 @@ interface Dependencies {
 const myFunction = (dependencies: Dependencies) => (name: string) => console.log(`${dependencies.dep1} ${dependencies.dep2} ${name}`);
 
 // The dependencies will be listed in an object in the second parameter
-container.bind(DI.CURRIED_FUNCTION_WITH_DEPENDENCIES)
-    .toCurry(myFunction, {dep1: DI.DEP1, dep2: DI.DEP2});
-
-// or using strings
+// using strings
 container.bind('CURRIED_FUNCTION_WITH_DEPENDENCIES')
     .toCurry(myFunction, {dep1: 'DEP1', dep2: 'DEP2'});
+
+// or using symbols
+container.bind(DI.CURRIED_FUNCTION_WITH_DEPENDENCIES)
+    .toCurry(myFunction, {dep1: DI.DEP1, dep2: DI.DEP2});
 ```
 
-#### Higher order functions
-You can also register functions with dependencies by using higher order functions
+#### Higher-order functions
+You can also register functions with dependencies by using higher-order functions:
 ```typescript
 const MyServiceWithDependencies = (dep1: string, dep2: number): MyServiceWithDependenciesInterface => {
     return {
@@ -138,15 +141,16 @@ const MyServiceWithDependencies = (dep1: string, dep2: number): MyServiceWithDep
 };
 
 // The dependencies will be listed in an array in the second parameter
-container.bind(DI.HIGHER_ORDER_FUNCTION_WITH_DEPENDENCIES)
-    .toHigherOrderFunction(MyServiceWithDependencies, [DI.DEP1, DI.DEP2]);
-
-// or using strings
+// using strings
 container.bind('HIGHER_ORDER_FUNCTION_WITH_DEPENDENCIES')
     .toHigherOrderFunction(MyServiceWithDependencies, ['DEP1', 'DEP2']);
+
+// or using symbols
+container.bind(DI.HIGHER_ORDER_FUNCTION_WITH_DEPENDENCIES)
+    .toHigherOrderFunction(MyServiceWithDependencies, [DI.DEP1, DI.DEP2]);
 ```
 
-But if you prefer, you can also use a dependency object
+But if you prefer, you can also use a dependency object:
 
 ```typescript
 interface Dependencies {
@@ -163,28 +167,20 @@ const MyService = (dependencies: Dependencies): MyServiceInterface => {
 };
 
 // The dependencies will be listed in an object in the second parameter
-container.bind(DI.HIGHER_ORDER_FUNCTION_WITH_DEPENDENCIES)
-    .toHigherOrderFunction(MyService, {dep1: DI.DEP1, dep2: DI.DEP2});
-
-// or using strings
+// using strings
 container.bind('HIGHER_ORDER_FUNCTION_WITH_DEPENDENCIES')
     .toHigherOrderFunction(MyService, {dep1: 'DEP1', dep2: 'DEP2'});
+
+// or using symbols
+container.bind(DI.HIGHER_ORDER_FUNCTION_WITH_DEPENDENCIES)
+    .toHigherOrderFunction(MyService, {dep1: DI.DEP1, dep2: DI.DEP2});
 ```
 
 #### Factories
 For more complex cases, you can register factories.
     
 ```typescript
-container.bind(DI.MY_USE_CASE).toFactory(() => {
-    // Do something before creating the instance
-     
-    // Then return the instance
-    return MyUseCase({
-        myService: container.get<MyService>(DI.MY_SERVICE)
-    });
-});
-
-// or using strings
+// using strings
 container.bind('MY_USE_CASE').toFactory(() => {
     // Do something before creating the instance
      
@@ -193,10 +189,20 @@ container.bind('MY_USE_CASE').toFactory(() => {
         myService: container.get<MyService>('MY_SERVICE')
     });
 });
+
+// or using symbols
+container.bind(DI.MY_USE_CASE).toFactory(() => {
+    // Do something before creating the instance
+     
+    // Then return the instance
+    return MyUseCase({
+        myService: container.get<MyService>(DI.MY_SERVICE)
+    });
+});
 ```
 
 #### Classes
-You can register classes, the dependencies of the class will be resolved and injected in the constructor
+You can register classes; the dependencies of the class will be resolved and injected into the constructor
 
 ```typescript
 class MyServiceClass implements MyServiceClassInterface {
@@ -212,7 +218,7 @@ class MyServiceClass implements MyServiceClassInterface {
 
 container.bind('CLASS_WITH_DEPENDENCIES').toClass(MyServiceClass, ['DEP1', 'DEP2']);
 
-// orusing symbols
+// or using symbols
 container.bind(DI.CLASS_WITH_DEPENDENCIES).toClass(MyServiceClass, [DI.DEP1, DI.DEP2]);
 ```
 
@@ -260,9 +266,11 @@ You can now resolve the dependencies using the get method of the container.
 import { DI } from './di';
 
 // Primitive
-const dep1 = container.get(DI.DEP1); // type will be the one you registered in your registry (string here)
-// or using strings
+// using strings
 const dep1 = container.get('DEP1'); // type will be the one you registered in your registry (string here)
+
+// or using symbols
+const dep1 = container.get(DI.DEP1); // type will be the one you registered in your registry (string here)
 ```
 
 ### Resolve the dependencies without the registry
@@ -271,9 +279,11 @@ const dep1 = container.get('DEP1'); // type will be the one you registered in yo
 import { DI } from './di';
 
 // Primitive
-const dep1 = container.get<string>(DI.DEP1); // Be fafault the type will be 'unknown', you need to cast it manually
-// or using strings
-const dep1 = container.get<string>('DEP1'); // Be fafault the type will be 'unknown', you need to cast it manually
+// using strings
+const dep1 = container.get<string>('DEP1'); // By default, the type will be 'unknown', so you need to cast it manually
+
+// or using symbols
+const dep1 = container.get<string>(DI.DEP1); // By default, the type will be 'unknown', so you need to cast it manually
 ```
 
 ### Modules
@@ -283,7 +293,7 @@ You can also use modules to organize your dependencies. Modules support the same
 #### Loading modules
 
 Modules can then be loaded in your container. 
-By default, when you create a container, it is using a default module under the hood.
+By default, when you create a container, it uses a default module under the hood.
 
 **With Registry (Recommended):**
 ```typescript
@@ -352,14 +362,14 @@ container.load(Symbol('module1'), module1);
 container.load(Symbol('module2'), module2);
 container.load(Symbol('module3'), module3);
 
-// The dependency DI.MY_SERVICE will be resolved with the higher order function and dep1 will be 'NEW dependency1'
+// The dependency DI.MY_SERVICE will be resolved with the higher-order function and dep1 will be 'NEW dependency1'
 const myService = container.get(DI.MY_SERVICE);
 ```
 
 #### Unload modules
 
 You can also unload a module from the container. The dependencies of the module will be removed from the container.
-Already cached instances will be removed to keep consistency and avoid potential errors.
+Already cached instances will be removed to maintain consistency and avoid potential errors.
 
 ```typescript
 const module1 = createModule<AppRegistry>();
@@ -402,7 +412,7 @@ const instance2 = container.get(DI.MY_SERVICE);
 console.log(instance1 === instance2); // false
 ```
 
-#### Scoped Scope
+#### Scoped scope
 In scoped scope, the container returns the same instance within a scope. Different scopes will have different instances.
 
 To use the scoped scope, you need to create a scope using runInScope.
@@ -430,7 +440,7 @@ Note: If you try to resolve a scoped dependency outside a scope, an error will b
 
 ### Circular dependencies
 
-IOctopus can detect circular dependencies. 
+The ioctopus container can detect circular dependencies. 
 An error will be thrown if a circular dependency is detected.
 
 ```typescript

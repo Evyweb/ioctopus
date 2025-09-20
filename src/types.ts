@@ -118,8 +118,9 @@ export interface TypedContainer<TRegistry> {
     load<TModuleRegistry>(moduleKey: ModuleKey, module: TypedModule<TModuleRegistry>): void;
     load(moduleKey: ModuleKey, module: Module): void;
 
-    get<K extends Extract<keyof TRegistry, string>>(key: K): TRegistry[K];
-    get<K extends Extract<keyof TRegistry, symbol>>(key: K): TRegistry[K];
+    get<TOverride = never, K extends keyof TRegistry & DependencyKey = keyof TRegistry & DependencyKey>(
+        key: K
+    ): [TOverride] extends [never] ? TRegistry[K] : TOverride;
 
     unload(key: ModuleKey): void;
 

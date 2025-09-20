@@ -63,7 +63,7 @@ describe('Registry', () => {
       container.bind('LOGGER').toClass(FakeLogger);
 
       // Assert
-      const logger = container.get('LOGGER') as FakeLogger;
+      const logger = container.get<FakeLogger>('LOGGER');
       expect(logger.extraMethod).toBeDefined();
       expect(logger.log).toBeDefined();
     });

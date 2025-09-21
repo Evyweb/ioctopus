@@ -2,29 +2,29 @@ import {DI} from "./examples/DI";
 import {Container, createContainer} from "../src";
 import {mock, MockProxy} from "vitest-mock-extended";
 import {
-    MyServiceClass,
-    MyServiceClassWithDependencyObject,
-    MyServiceClassWithoutDependencies
+  MyServiceClass,
+  MyServiceClassWithDependencyObject,
+  MyServiceClassWithoutDependencies
 } from "./examples/Classes";
 import {
-    CurriedFunctionWithDependencies,
-    CurriedFunctionWithoutDependencies,
-    LoggerInterface,
-    MyServiceClassInterface,
-    MyServiceInterface,
-    MyUseCaseInterface,
-    SayHelloType,
-    ServiceWithoutDependencyInterface
+  CurriedFunctionWithDependencies,
+  CurriedFunctionWithoutDependencies,
+  LoggerInterface,
+  MyServiceClassInterface,
+  MyServiceInterface,
+  MyUseCaseInterface,
+  SayHelloType,
+  ServiceWithoutDependencyInterface
 } from "./examples/types";
 import {
-    curriedFunctionWithDependencies,
-    curriedFunctionWithDependencyObject,
-    curriedFunctionWithoutDependencies
+  curriedFunctionWithDependencies,
+  curriedFunctionWithDependencyObject,
+  curriedFunctionWithoutDependencies
 } from "./examples/Currying";
 import {
-    HigherOrderFunctionWithDependencies,
-    HigherOrderFunctionWithDependencyObject,
-    HigherOrderFunctionWithoutDependency
+  HigherOrderFunctionWithDependencies,
+  HigherOrderFunctionWithDependencyObject,
+  HigherOrderFunctionWithoutDependency
 } from "./examples/HigherOrderFunctions";
 import {sayHelloWorld} from "./examples/SimpleFunctions";
 import {ClassA, ClassB} from "./examples/Circular";

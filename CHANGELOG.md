@@ -1,5 +1,16 @@
 # @evyweb/ioctopus
 
+## 1.3.0
+
+### Minor Changes
+
+- Add optional registry to containers
+- Improve type safety
+
+### Patch Changes
+
+- Update dev dependencies
+
 ## 1.2.0
 
 ### Minor Changes
@@ -8,6 +19,7 @@
 - Add strings as key for module binding
 
 ### Patch Changes
+
 - Update dev dependencies
 
 ## 1.1.0

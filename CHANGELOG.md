@@ -1,5 +1,11 @@
 # @evyweb/ioctopus
 
+## 1.3.1
+
+### Patch Changes
+
+- Fix dependency array and dependency object using unknown string or symbol keys type safety
+
 ## 1.3.0
 
 ### Minor Changes

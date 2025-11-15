@@ -1,6 +1,7 @@
 ﻿import {createContainer, TypedContainer} from '../src';
 import {
   FakeLogger,
+  ServiceClass,
   ServiceClassNoDeps,
   ServiceClassWithDeps,
   ServiceClassWithObjectDeps,
@@ -152,10 +153,70 @@ describe('Registry', () => {
         .toThrowError('No binding found for key: USER_SERVICE');
     });
   });
+
+  describe('When using a typed container', () => {
+    describe('When using string keys', () => {
+      it('should not allow dependency names outside the registry', () => {
+        // Arrange
+        container.bind('DEP1').toValue('dep1');
+        container.bind('DEP2').toValue(1);
+
+        // Act & Assert
+        // @ts-expect-error - dependency name is not part of the registry
+        container.bind('CLASS_WITH_DEPENDENCIES').toClass(ServiceClassWithDeps, ['UNKNOWN_DEP']);
+      });
+
+      it('should not allow named dependencies outside the registry', () => {
+        // Arrange
+        container.bind('DEP1').toValue('dep1');
+        container.bind('DEP2').toValue(1);
+
+        // Act & Assert
+        // @ts-expect-error - dependency name is not part of the registry
+        container.bind('CLASS_WITH_DEPENDENCIES').toClass(ServiceClassWithObjectDeps, {
+          dep1: 'DEP1',
+          dep2: 'UNKNOWN_DEP'
+        });
+      });
+    });
+
+    describe('When using symbol keys', () => {
+      const DEP1 = Symbol('DEP1');
+      const DEP2 = Symbol('DEP2');
+      const CLASS_WITH_DEPENDENCIES = Symbol('CLASS_WITH_DEPENDENCIES');
+      const UNKNOWN_DEP = Symbol('UNKNOWN_DEP');
+
+      type SymbolRegistry = {
+        [DEP1]: string;
+        [DEP2]: number;
+        [CLASS_WITH_DEPENDENCIES]: ServiceClass;
+      }
+
+      it('should not allow dependency symbols outside the registry', () => {
+        // Arrange
+        const symbolContainer = createContainer<SymbolRegistry>();
+        symbolContainer.bind(DEP1).toValue('dep1');
+        symbolContainer.bind(DEP2).toValue(1);
+
+        // Act & Assert
+        // @ts-expect-error - dependency symbol is not part of the registry
+        symbolContainer.bind(CLASS_WITH_DEPENDENCIES).toClass(ServiceClassWithDeps, [DEP1, UNKNOWN_DEP]);
+      });
+
+      it('should not allow named dependency symbols outside the registry', () => {
+        // Arrange
+        const symbolContainer = createContainer<SymbolRegistry>();
+        symbolContainer.bind(DEP1).toValue('dep1');
+        symbolContainer.bind(DEP2).toValue(1);
+
+        // Act & Assert
+        // @ts-expect-error - dependency symbol is not part of the registry
+        symbolContainer.bind(CLASS_WITH_DEPENDENCIES).toClass(ServiceClassWithObjectDeps, {
+          dep1: DEP1,
+          dep2: UNKNOWN_DEP
+        });
+      });
+    });
+  });
 });
-
-
-
-
-
 

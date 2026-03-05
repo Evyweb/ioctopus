@@ -1,4 +1,4 @@
-﻿import {createContainer, TypedContainer} from '../src';
+﻿import {createContainer, createModule, TypedContainer, type TypedModule} from '../src';
 import {
   FakeLogger,
   ServiceClass,
@@ -8,6 +8,11 @@ import {
   simpleFunction,
   TestRegistry
 } from "./examples/Registry";
+import {
+  HigherOrderFunctionWithDependencies,
+  HigherOrderFunctionWithDependencyObject
+} from "./examples/HigherOrderFunctions";
+import { curriedFunctionWithDependencies } from "./examples/Currying";
 
 describe('Registry', () => {
   let container: TypedContainer<TestRegistry>;
@@ -215,6 +220,153 @@ describe('Registry', () => {
           dep1: DEP1,
           dep2: UNKNOWN_DEP
         });
+      });
+
+      it('should not allow wrong dependency types for array deps', () => {
+        // Arrange
+        const symbolContainer = createContainer<SymbolRegistry>();
+        symbolContainer.bind(DEP1).toValue('dep1');
+        symbolContainer.bind(DEP2).toValue(1);
+
+        // Act & Assert
+        // @ts-expect-error - DEP2 is number but dep1 expects string
+        symbolContainer.bind(CLASS_WITH_DEPENDENCIES).toClass(ServiceClassWithDeps, [DEP2, DEP1]);
+      });
+
+      it('should not allow wrong dependency types for object deps', () => {
+        // Arrange
+        const symbolContainer = createContainer<SymbolRegistry>();
+        symbolContainer.bind(DEP1).toValue('dep1');
+        symbolContainer.bind(DEP2).toValue(1);
+
+        // Act & Assert
+        // @ts-expect-error - DEP2 is number but dep1 expects string
+        symbolContainer.bind(CLASS_WITH_DEPENDENCIES).toClass(ServiceClassWithObjectDeps, {
+          dep1: DEP2,
+          dep2: DEP1
+        });
+      });
+    });
+
+    describe('When using string keys', () => {
+      it('should not allow wrong dependency types for array deps', () => {
+        // Arrange
+        container.bind('DEP1').toValue('dep1');
+        container.bind('DEP2').toValue(1);
+
+        // Act & Assert
+        // @ts-expect-error - DEP2 is number but dep1 expects string
+        container.bind('CLASS_WITH_DEPENDENCIES').toClass(ServiceClassWithDeps, ['DEP2', 'DEP1']);
+      });
+
+      it('should not allow wrong dependency types for object deps', () => {
+        // Arrange
+        container.bind('DEP1').toValue('dep1');
+        container.bind('DEP2').toValue(1);
+
+        // Act & Assert
+        // @ts-expect-error - DEP2 is number but dep1 expects string
+        container.bind('CLASS_WITH_DEPENDENCIES').toClass(ServiceClassWithObjectDeps, {
+          dep1: 'DEP2',
+          dep2: 'DEP1'
+        });
+      });
+
+      describe('toHigherOrderFunction()', () => {
+        it('should not allow wrong dependency types for array deps', () => {
+          // Arrange
+          container.bind('DEP1').toValue('dep1');
+          container.bind('DEP2').toValue(1);
+
+          // Act & Assert
+          // @ts-expect-error - DEP2 is number but dep1 expects string
+          container.bind('MY_SERVICE').toHigherOrderFunction(HigherOrderFunctionWithDependencies, ['DEP2', 'DEP1']);
+        });
+
+        it('should require dependencies when function requires them', () => {
+          // Act & Assert
+          // @ts-expect-error - omitting required dependencies
+          container.bind('MY_SERVICE').toHigherOrderFunction(HigherOrderFunctionWithDependencies);
+        });
+      });
+
+      describe('toCurry()', () => {
+        it('should not allow wrong dependency types for array deps', () => {
+          // Arrange
+          container.bind('DEP2').toValue(1);
+
+          // Act & Assert
+          // @ts-expect-error - DEP2 is number but dep1 expects string
+          container.bind('MY_CURRIED_FUNCTION').toCurry(curriedFunctionWithDependencies, ['DEP2']);
+        });
+
+        it('should require dependencies when function requires them', () => {
+          // Act & Assert
+          // @ts-expect-error - omitting required dependencies
+          container.bind('MY_CURRIED_FUNCTION').toCurry(curriedFunctionWithDependencies);
+        });
+      });
+
+      describe('toClass() with conditionally required dependencies', () => {
+        it('should require dependencies when constructor requires them', () => {
+          // Act & Assert
+          // @ts-expect-error - omitting required dependencies
+          container.bind('CLASS_WITH_DEPENDENCIES').toClass(ServiceClassWithDeps);
+        });
+
+        it('should allow omitting dependencies when constructor needs none', () => {
+          // Act & Assert - should not error
+          container.bind('CLASS_WITHOUT_DEPENDENCIES').toClass(ServiceClassNoDeps);
+        });
+      });
+    });
+
+    describe('When using a typed module', () => {
+      it('should not allow missing dependencies in toClass()', () => {
+        // Arrange
+        const mod = createModule<TestRegistry>();
+
+        // Act & Assert
+        // @ts-expect-error - empty object doesn't satisfy the required deps
+        mod.bind('CLASS_WITH_DEPENDENCIES').toClass(ServiceClassWithDeps, {});
+      });
+
+      it('should not allow wrong dependency types for array deps in toClass()', () => {
+        // Arrange
+        const mod = createModule<TestRegistry>();
+
+        // Act & Assert
+        // @ts-expect-error - DEP2 is number but dep1 expects string
+        mod.bind('CLASS_WITH_DEPENDENCIES').toClass(ServiceClassWithDeps, ['DEP2', 'DEP1']);
+      });
+
+      it('should not allow wrong dependency types for object deps in toClass()', () => {
+        // Arrange
+        const mod = createModule<TestRegistry>();
+
+        // Act & Assert
+        // @ts-expect-error - DEP2 is number but dep1 expects string
+        mod.bind('CLASS_WITH_DEPENDENCIES').toClass(ServiceClassWithObjectDeps, {
+          dep1: 'DEP2',
+          dep2: 'DEP1'
+        });
+      });
+
+      it('should require dependencies when constructor requires them', () => {
+        // Arrange
+        const mod = createModule<TestRegistry>();
+
+        // Act & Assert
+        // @ts-expect-error - omitting required dependencies
+        mod.bind('CLASS_WITH_DEPENDENCIES').toClass(ServiceClassWithDeps);
+      });
+
+      it('should allow omitting dependencies when constructor needs none', () => {
+        // Arrange
+        const mod = createModule<TestRegistry>();
+
+        // Act & Assert - should not error
+        mod.bind('CLASS_WITHOUT_DEPENDENCIES').toClass(ServiceClassNoDeps);
       });
     });
   });

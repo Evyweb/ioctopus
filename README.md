@@ -36,6 +36,8 @@ Then you can bind the dependency to a value, a function, a class, a factory, a h
 
 You can define a registry type or interface to get full type safety for your dependency injection keys and their corresponding types. This eliminates the need for manual casting when resolving dependencies.
 
+The container also validates that the dependencies you provide match what your classes or functions expect. TypeScript will catch errors at compile time such as omitting required dependencies or providing the wrong dependency types.
+
 ### Create the Registry
 
 Define a type or interface that maps your injection tokens to the desired types:

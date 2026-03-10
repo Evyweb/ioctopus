@@ -9,6 +9,7 @@ export type TestRegistry = {
   'MY_USE_CASE': MyUseCase;
   'CLASS_WITH_DEPENDENCIES': ServiceClass;
   'CLASS_WITHOUT_DEPENDENCIES': ServiceClass;
+  'MY_CURRIED_FUNCTION': (name: string) => string;
 }
 
 export interface UserService {

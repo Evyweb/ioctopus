@@ -16,48 +16,47 @@ export interface DefaultRegistry {
 
 type RegistryKey<TRegistry> = Extract<keyof TRegistry, DependencyKey>;
 
-// Find all registry keys whose resolved type extends T
-type KeysMatching<TRegistry, T> = {
+type MatchingRegistryKeys<TRegistry, T> = {
   [K in RegistryKey<TRegistry>]: TRegistry[K & keyof TRegistry] extends T
     ? K
     : never;
 }[RegistryKey<TRegistry>];
 
-// For each position in a params tuple, compute the valid registry keys
-type ValidatedArrayDeps<TRegistry, TParams extends readonly unknown[]> = {
-  readonly [I in keyof TParams]: KeysMatching<TRegistry, TParams[I]>;
+type ValidatedArrayDependencies<TRegistry, TParameters extends readonly unknown[]> = {
+  readonly [I in keyof TParameters]: MatchingRegistryKeys<TRegistry, TParameters[I]>;
 };
 
-// For a single object parameter, map each property to valid registry keys
-type ValidatedObjectDeps<TRegistry, TParam> = {
-  [P in keyof TParam]: KeysMatching<TRegistry, TParam[P]>;
+type NonTupleArray<T extends readonly unknown[]> = number extends T['length'] ? T : never;
+
+type CompatibleArrayDependencies<TRegistry, TParameters extends readonly unknown[]> =
+  readonly MatchingRegistryKeys<TRegistry, TParameters[number]>[];
+
+type ValidatedObjectDependencies<TRegistry, TParameter> = {
+  [P in keyof TParameter]: MatchingRegistryKeys<TRegistry, TParameter[P]>;
 };
 
-// Shared core, validate deps against a parameter tuple
-type ValidDepsForParams<
+type ValidDependenciesForParameters<
   TRegistry,
-  TParams extends readonly unknown[]
-> = TParams extends readonly []
+  TParameters extends readonly unknown[]
+> = TParameters extends readonly []
   ? never
-  : TParams extends readonly [infer Only, ...infer Rest]
+  : TParameters extends readonly [infer Only, ...infer Rest]
   ? Rest extends []
     ? Only extends Record<string, unknown>
-      ? ValidatedArrayDeps<TRegistry, [Only]> | ValidatedObjectDeps<TRegistry, Only>
-      : ValidatedArrayDeps<TRegistry, [Only]>
-    : ValidatedArrayDeps<TRegistry, TParams>
+      ? ValidatedArrayDependencies<TRegistry, [Only]> | ValidatedObjectDependencies<TRegistry, Only>
+      : ValidatedArrayDependencies<TRegistry, [Only]>
+    : ValidatedArrayDependencies<TRegistry, TParameters>
   : never;
 
-// Combine valid dependencies for a given constructor
-type ValidDepsFor<
+type ValidDependenciesFor<
   TRegistry,
   TClass extends new (...args: any[]) => any
-> = ValidDepsForParams<TRegistry, ConstructorParameters<TClass>>;
+> = ValidDependenciesForParameters<TRegistry, ConstructorParameters<TClass>>;
 
-// Combine valid dependencies for a given function
-type ValidFnDepsFor<
+type ValidFunctionDependenciesFor<
   TRegistry,
-  TFn extends (...args: any[]) => any
-> = ValidDepsForParams<TRegistry, Parameters<TFn>>;
+  TFunction extends (...args: any[]) => any
+> = ValidDependenciesForParameters<TRegistry, Parameters<TFunction>>;
 
 type IncompatibleOverride<K extends PropertyKey, Expected, Provided> = {
   __error: 'Incompatible override type for registry key';
@@ -101,32 +100,42 @@ interface Bindable {
 interface TypedBindable<TRegistry> {
   bind<K extends RegistryKey<TRegistry>>(key: K): {
     toValue: (value: TRegistry[K]) => void;
-    toFunction: (fn: CallableFunction) => void;
+    toFunction: (fn: TRegistry[K] extends CallableFunction ? TRegistry[K] : never) => void;
     toHigherOrderFunction: {
-      <TFn extends (...args: readonly []) => TRegistry[K]>(
-        fn: TFn,
+      <TFunction extends (...args: readonly []) => TRegistry[K]>(
+        fn: TFunction,
         dependencies?: undefined,
         scope?: Scope
       ): void;
-      <TFn extends (...args: any[]) => TRegistry[K]>(
-        fn: TFn,
-        dependencies: ValidFnDepsFor<TRegistry, TFn>,
+      <TFunction extends (...args: any[]) => TRegistry[K]>(
+        fn: TFunction,
+        dependencies: ValidFunctionDependenciesFor<TRegistry, TFunction>,
+        scope?: Scope
+      ): void;
+      <TFunction extends (...args: any[]) => TRegistry[K], const TDependencies extends CompatibleArrayDependencies<TRegistry, Parameters<TFunction>>>(
+        fn: TFunction,
+        dependencies: NonTupleArray<TDependencies>,
         scope?: Scope
       ): void;
     };
     toCurry: {
-      <TFn extends (...args: readonly []) => TRegistry[K]>(
-        fn: TFn,
+      <TFunction extends (...args: readonly []) => TRegistry[K]>(
+        fn: TFunction,
         dependencies?: undefined,
         scope?: Scope
       ): void;
-      <TFn extends (...args: any[]) => TRegistry[K]>(
-        fn: TFn,
-        dependencies: ValidFnDepsFor<TRegistry, TFn>,
+      <TFunction extends (...args: any[]) => TRegistry[K]>(
+        fn: TFunction,
+        dependencies: ValidFunctionDependenciesFor<TRegistry, TFunction>,
+        scope?: Scope
+      ): void;
+      <TFunction extends (...args: any[]) => TRegistry[K], const TDependencies extends CompatibleArrayDependencies<TRegistry, Parameters<TFunction>>>(
+        fn: TFunction,
+        dependencies: NonTupleArray<TDependencies>,
         scope?: Scope
       ): void;
     };
-    toFactory: (factory: CallableFunction, scope?: Scope) => void;
+    toFactory: (factory: (resolve: (key: DependencyKey) => unknown) => TRegistry[K], scope?: Scope) => void;
     toClass: {
       <TClass extends new () => TRegistry[K]>(
         constructor: TClass,
@@ -135,7 +144,12 @@ interface TypedBindable<TRegistry> {
       ): void;
       <TClass extends new (...args: any[]) => TRegistry[K]>(
         constructor: TClass,
-        dependencies: ValidDepsFor<TRegistry, TClass>,
+        dependencies: ValidDependenciesFor<TRegistry, TClass>,
+        scope?: Scope
+      ): void;
+      <TClass extends new (...args: any[]) => TRegistry[K], const TDependencies extends CompatibleArrayDependencies<TRegistry, ConstructorParameters<TClass>>>(
+        constructor: TClass,
+        dependencies: NonTupleArray<TDependencies>,
         scope?: Scope
       ): void;
     };
@@ -178,26 +192,36 @@ export interface TypedContainer<TRegistry> {
     toValue: (value: TRegistry[K]) => void;
     toFunction: (fn: TRegistry[K] extends CallableFunction ? TRegistry[K] : never) => void;
     toHigherOrderFunction: {
-      <TFn extends (...args: readonly []) => TRegistry[K]>(
-        fn: TFn,
+      <TFunction extends (...args: readonly []) => TRegistry[K]>(
+        fn: TFunction,
         dependencies?: undefined,
         scope?: Scope
       ): void;
-      <TFn extends (...args: any[]) => TRegistry[K]>(
-        fn: TFn,
-        dependencies: ValidFnDepsFor<TRegistry, TFn>,
+      <TFunction extends (...args: any[]) => TRegistry[K]>(
+        fn: TFunction,
+        dependencies: ValidFunctionDependenciesFor<TRegistry, TFunction>,
+        scope?: Scope
+      ): void;
+      <TFunction extends (...args: any[]) => TRegistry[K], const TDependencies extends CompatibleArrayDependencies<TRegistry, Parameters<TFunction>>>(
+        fn: TFunction,
+        dependencies: NonTupleArray<TDependencies>,
         scope?: Scope
       ): void;
     };
     toCurry: {
-      <TFn extends (...args: readonly []) => TRegistry[K]>(
-        fn: TFn,
+      <TFunction extends (...args: readonly []) => TRegistry[K]>(
+        fn: TFunction,
         dependencies?: undefined,
         scope?: Scope
       ): void;
-      <TFn extends (...args: any[]) => TRegistry[K]>(
-        fn: TFn,
-        dependencies: ValidFnDepsFor<TRegistry, TFn>,
+      <TFunction extends (...args: any[]) => TRegistry[K]>(
+        fn: TFunction,
+        dependencies: ValidFunctionDependenciesFor<TRegistry, TFunction>,
+        scope?: Scope
+      ): void;
+      <TFunction extends (...args: any[]) => TRegistry[K], const TDependencies extends CompatibleArrayDependencies<TRegistry, Parameters<TFunction>>>(
+        fn: TFunction,
+        dependencies: NonTupleArray<TDependencies>,
         scope?: Scope
       ): void;
     };
@@ -210,7 +234,12 @@ export interface TypedContainer<TRegistry> {
       ): void;
       <TClass extends new (...args: any[]) => TRegistry[K]>(
         constructor: TClass,
-        dependencies: ValidDepsFor<TRegistry, TClass>,
+        dependencies: ValidDependenciesFor<TRegistry, TClass>,
+        scope?: Scope
+      ): void;
+      <TClass extends new (...args: any[]) => TRegistry[K], const TDependencies extends CompatibleArrayDependencies<TRegistry, ConstructorParameters<TClass>>>(
+        constructor: TClass,
+        dependencies: NonTupleArray<TDependencies>,
         scope?: Scope
       ): void;
     };

@@ -1,5 +1,13 @@
 # @evyweb/ioctopus
 
+## 1.4.0
+
+### Minor Changes
+
+- Improve typed binding validation for containers and modules, including dependency key/type checks for classes and functions, while also updating development dependencies.
+
+  Special thanks to Dray Lacy for the typed binding validation contribution.
+
 ## 1.3.1
 
 ### Patch Changes

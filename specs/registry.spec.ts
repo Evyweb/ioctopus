@@ -1,4 +1,4 @@
-﻿import {createContainer, createModule, TypedContainer, type TypedModule} from '../src';
+﻿import {createContainer, createModule, TypedContainer} from '../src';
 import {
   FakeLogger,
   ServiceClass,
@@ -9,10 +9,9 @@ import {
   TestRegistry
 } from "./examples/Registry";
 import {
-  HigherOrderFunctionWithDependencies,
-  HigherOrderFunctionWithDependencyObject
+  HigherOrderFunctionWithDependencies
 } from "./examples/HigherOrderFunctions";
-import { curriedFunctionWithDependencies } from "./examples/Currying";
+import {curriedFunctionWithDependencies} from "./examples/Currying";
 
 describe('Registry', () => {
   let container: TypedContainer<TestRegistry>;
@@ -241,10 +240,7 @@ describe('Registry', () => {
 
         // Act & Assert
         // @ts-expect-error - DEP2 is number but dep1 expects string
-        symbolContainer.bind(CLASS_WITH_DEPENDENCIES).toClass(ServiceClassWithObjectDeps, {
-          dep1: DEP2,
-          dep2: DEP1
-        });
+        symbolContainer.bind(CLASS_WITH_DEPENDENCIES).toClass(ServiceClassWithObjectDeps, {dep1: DEP2, dep2: DEP1});
       });
     });
 
@@ -266,10 +262,17 @@ describe('Registry', () => {
 
         // Act & Assert
         // @ts-expect-error - DEP2 is number but dep1 expects string
-        container.bind('CLASS_WITH_DEPENDENCIES').toClass(ServiceClassWithObjectDeps, {
-          dep1: 'DEP2',
-          dep2: 'DEP1'
-        });
+        container.bind('CLASS_WITH_DEPENDENCIES').toClass(ServiceClassWithObjectDeps, {dep1: 'DEP2', dep2: 'DEP1'});
+      });
+
+      it('should allow dependency arrays stored in typed variables for classes', () => {
+        // Arrange
+        container.bind('DEP1').toValue('dep1');
+        container.bind('DEP2').toValue(1);
+        const dependencies: Array<'DEP1' | 'DEP2'> = ['DEP1', 'DEP2'];
+
+        // Act & Assert
+        container.bind('CLASS_WITH_DEPENDENCIES').toClass(ServiceClassWithDeps, dependencies);
       });
 
       describe('toHigherOrderFunction()', () => {
@@ -287,6 +290,16 @@ describe('Registry', () => {
           // Act & Assert
           // @ts-expect-error - omitting required dependencies
           container.bind('MY_SERVICE').toHigherOrderFunction(HigherOrderFunctionWithDependencies);
+        });
+
+        it('should allow dependency arrays stored in typed variables', () => {
+          // Arrange
+          container.bind('DEP1').toValue('dep1');
+          container.bind('DEP2').toValue(1);
+          const dependencies: Array<'DEP1' | 'DEP2'> = ['DEP1', 'DEP2'];
+
+          // Act & Assert
+          container.bind('MY_SERVICE').toHigherOrderFunction(HigherOrderFunctionWithDependencies, dependencies);
         });
       });
 
@@ -315,7 +328,7 @@ describe('Registry', () => {
         });
 
         it('should allow omitting dependencies when constructor needs none', () => {
-          // Act & Assert - should not error
+          // Act & Assert
           container.bind('CLASS_WITHOUT_DEPENDENCIES').toClass(ServiceClassNoDeps);
         });
       });
@@ -324,49 +337,64 @@ describe('Registry', () => {
     describe('When using a typed module', () => {
       it('should not allow missing dependencies in toClass()', () => {
         // Arrange
-        const mod = createModule<TestRegistry>();
+        const module = createModule<TestRegistry>();
 
         // Act & Assert
         // @ts-expect-error - empty object doesn't satisfy the required deps
-        mod.bind('CLASS_WITH_DEPENDENCIES').toClass(ServiceClassWithDeps, {});
+        module.bind('CLASS_WITH_DEPENDENCIES').toClass(ServiceClassWithDeps, {});
       });
 
       it('should not allow wrong dependency types for array deps in toClass()', () => {
         // Arrange
-        const mod = createModule<TestRegistry>();
+        const module = createModule<TestRegistry>();
 
         // Act & Assert
         // @ts-expect-error - DEP2 is number but dep1 expects string
-        mod.bind('CLASS_WITH_DEPENDENCIES').toClass(ServiceClassWithDeps, ['DEP2', 'DEP1']);
+        module.bind('CLASS_WITH_DEPENDENCIES').toClass(ServiceClassWithDeps, ['DEP2', 'DEP1']);
       });
 
       it('should not allow wrong dependency types for object deps in toClass()', () => {
         // Arrange
-        const mod = createModule<TestRegistry>();
+        const module = createModule<TestRegistry>();
 
         // Act & Assert
         // @ts-expect-error - DEP2 is number but dep1 expects string
-        mod.bind('CLASS_WITH_DEPENDENCIES').toClass(ServiceClassWithObjectDeps, {
-          dep1: 'DEP2',
-          dep2: 'DEP1'
-        });
+        module.bind('CLASS_WITH_DEPENDENCIES').toClass(ServiceClassWithObjectDeps, {dep1: 'DEP2', dep2: 'DEP1'});
       });
 
       it('should require dependencies when constructor requires them', () => {
         // Arrange
-        const mod = createModule<TestRegistry>();
+        const module = createModule<TestRegistry>();
 
         // Act & Assert
         // @ts-expect-error - omitting required dependencies
-        mod.bind('CLASS_WITH_DEPENDENCIES').toClass(ServiceClassWithDeps);
+        module.bind('CLASS_WITH_DEPENDENCIES').toClass(ServiceClassWithDeps);
       });
 
       it('should allow omitting dependencies when constructor needs none', () => {
         // Arrange
-        const mod = createModule<TestRegistry>();
+        const module = createModule<TestRegistry>();
 
-        // Act & Assert - should not error
-        mod.bind('CLASS_WITHOUT_DEPENDENCIES').toClass(ServiceClassNoDeps);
+        // Act & Assert
+        module.bind('CLASS_WITHOUT_DEPENDENCIES').toClass(ServiceClassNoDeps);
+      });
+
+      it('should type-check toFunction() against the registry', () => {
+        // Arrange
+        const module = createModule<TestRegistry>();
+
+        // Act & Assert
+        // @ts-expect-error - function signature does not match the registry
+        module.bind('SIMPLE_FUNCTION').toFunction((name: string) => name);
+      });
+
+      it('should type-check toFactory() against the registry', () => {
+        // Arrange
+        const module = createModule<TestRegistry>();
+
+        // Act & Assert
+        // @ts-expect-error - factory return type does not match the registry
+        module.bind('CONFIG').toFactory(() => 123);
       });
     });
   });
